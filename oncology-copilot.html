@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oncology Co-Pilot</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #1a365d;
+    color: white;
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  header .logo { display: flex; align-items: center; gap: 12px; }
+  header .logo-icon {
+    width: 36px; height: 36px;
+    background: #63b3ed;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  header .subtitle { font-size: 12px; opacity: 0.7; margin-top: 1px; }
+  .disclaimer-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── API Key Banner ── */
+  #api-key-section {
+    background: white;
+    border: 2px solid #63b3ed;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  #api-key-section h3 { font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 8px; }
+  #api-key-section p { font-size: 13px; color: #718096; margin-bottom: 14px; }
+  .api-key-row { display: flex; gap: 10px; align-items: center; }
+  #api-key-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: monospace;
+    background: #f7fafc;
+  }
+  #api-key-input:focus { outline: none; border-color: #63b3ed; }
+  .btn-save-key {
+    background: #2b6cb0;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-save-key:hover { background: #2c5282; }
+  #key-status { font-size: 13px; color: #48bb78; display: none; margin-top: 8px; }
+
+  /* ── Main card ── */
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: #ebf8ff;
+    border-bottom: 1px solid #bee3f8;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-header .step-num {
+    width: 28px; height: 28px;
+    background: #3182ce;
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .card-header h2 { font-size: 16px; font-weight: 700; color: #2c5282; }
+  .card-header p { font-size: 13px; color: #4a5568; margin-top: 2px; }
+  .card-body { padding: 24px; }
+
+  /* ── Report input ── */
+  #report-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    color: #2d3748;
+    background: #f7fafc;
+  }
+  #report-textarea:focus { outline: none; border-color: #63b3ed; background: white; }
+  #report-textarea::placeholder { color: #a0aec0; }
+
+  .input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .sample-link {
+    font-size: 13px;
+    color: #3182ce;
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .sample-link:hover { color: #2c5282; }
+
+  .btn-analyze {
+    background: #276749;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .btn-analyze:hover { background: #22543d; }
+  .btn-analyze:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Results ── */
+  #results { display: none; }
+
+  /* Summary section */
+  .summary-box {
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    border-radius: 8px;
+    padding: 20px;
+    line-height: 1.7;
+    font-size: 15px;
+    color: #276749;
+    white-space: pre-wrap;
+  }
+
+  /* Biomarkers */
+  .biomarker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .biomarker-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    background: #f7fafc;
+  }
+  .biomarker-card .bm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .biomarker-card .bm-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #2d3748;
+  }
+  .biomarker-card .bm-result {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  .bm-positive { background: #fed7d7; color: #9b2c2c; }
+  .bm-negative { background: #e2e8f0; color: #4a5568; }
+  .bm-high { background: #feebc8; color: #7b341e; }
+  .bm-other { background: #bee3f8; color: #2c5282; }
+  .biomarker-card .bm-meaning {
+    font-size: 13px;
+    color: #4a5568;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .biomarker-card .bm-implications {
+    font-size: 13px;
+    color: #2b6cb0;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .no-biomarkers {
+    color: #718096;
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* Questions */
+  .questions-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .questions-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #ebf8ff;
+    border: 1px solid #bee3f8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #2c5282;
+    line-height: 1.5;
+  }
+  .q-num {
+    background: #3182ce;
+    color: white;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Red flags */
+  .red-flags-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .red-flags-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #9b2c2c;
+    line-height: 1.5;
+  }
+  .flag-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* Clinical Trials */
+  .trial-search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  #cancer-type-display {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #f7fafc;
+    color: #2d3748;
+    min-width: 200px;
+  }
+  #location-input {
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 200px;
+    background: white;
+  }
+  #location-input:focus { outline: none; border-color: #63b3ed; }
+  .btn-trials {
+    background: #6b46c1;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-trials:hover { background: #553c9a; }
+  .btn-trials:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  #trials-results { margin-top: 20px; }
+  .trial-card {
+    border: 1px solid #e9d8fd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #faf5ff;
+  }
+  .trial-card:last-child { margin-bottom: 0; }
+  .trial-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .trial-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #44337a;
+    line-height: 1.4;
+  }
+  .trial-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .badge-recruiting { background: #c6f6d5; color: #276749; }
+  .badge-phase { background: #bee3f8; color: #2c5282; }
+  .trial-nct {
+    font-size: 12px;
+    color: #6b46c1;
+    margin-bottom: 6px;
+    font-family: monospace;
+  }
+  .trial-summary {
+    font-size: 13px;
+    color: #553c9a;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .trial-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b46c1;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .trial-link:hover { text-decoration: underline; }
+
+  /* Error/info states */
+  .error-box {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    border-radius: 8px;
+    padding: 14px;
+    color: #c53030;
+    font-size: 14px;
+  }
+  .info-box {
+    background: #ebf8ff;
+    border: 1px solid #90cdf4;
+    border-radius: 8px;
+    padding: 14px;
+    color: #2c5282;
+    font-size: 14px;
+  }
+
+  /* Disclaimer footer */
+  .disclaimer-footer {
+    background: #2d3748;
+    color: #a0aec0;
+    text-align: center;
+    padding: 20px 32px;
+    font-size: 12px;
+    line-height: 1.7;
+    margin-top: 40px;
+  }
+  .disclaimer-footer strong { color: #e2e8f0; }
+
+  /* Loading state for streaming */
+  .streaming-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: #276749;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .section-loading {
+    color: #718096;
+    font-size: 14px;
+    font-style: italic;
+    padding: 8px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧬</div>
+    <div>
+      <h1>Oncology Co-Pilot</h1>
+      <div class="subtitle">AI-powered cancer care navigation</div>
+    </div>
+  </div>
+  <div class="disclaimer-badge">Not a medical diagnosis tool</div>
+</header>
+
+<div class="container">
+
+  <!-- API Key -->
+  <div id="api-key-section">
+    <h3>🔑 Anthropic API Key</h3>
+    <p>Your key is stored only in your browser session and sent directly to Anthropic's API — never to any other server.</p>
+    <div class="api-key-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+      <button class="btn-save-key" onclick="saveKey()">Save Key</button>
+    </div>
+    <div id="key-status">✓ API key saved for this session</div>
+  </div>
+
+  <!-- Step 1: Paste Report -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">1</div>
+      <div>
+        <h2>Paste Your Pathology Report</h2>
+        <p>Copy text from your pathology, biopsy, or genetic testing report</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <textarea
+        id="report-textarea"
+        placeholder="Paste your pathology report, biopsy results, or molecular/genomic testing report here...
+
+Example: 'CLINICAL DIAGNOSIS: Non-small cell lung cancer. SPECIMEN: Right upper lobe core needle biopsy. DIAGNOSIS: Invasive adenocarcinoma. EGFR: Exon 19 deletion detected. PD-L1 TPS: 45%. KRAS: Wild-type. ALK: Negative by IHC.'"
+      ></textarea>
+      <div class="input-actions">
+        <button class="sample-link" onclick="loadSampleReport()">Load sample report →</button>
+        <button class="btn-analyze" id="analyze-btn" onclick="analyzeReport()">
+          <div class="spinner" id="btn-spinner"></div>
+          <span id="btn-text">🔬 Analyze Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results (hidden until analysis) -->
+  <div id="results">
+
+    <!-- Step 2: Plain Language Summary -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-num">2</div>
+        <div>
+          <h2>Plain Language Summary</h2>
+          <p>What your report means in everyday language</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="summary-box" id="summary-text"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Biomarkers -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-num">3</div>
+        <div>
+          <h2>Biomarkers &amp; Molecular Findings</h2>
+          <p>Actionable genetic and molecular markers that affect treatment options</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="biomarkers-content">
+          <div class="section-loading">Analyzing biomarkers...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Questions -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-num">4</div>
+        <div>
+          <h2>Questions to Ask Your Oncologist</h2>
+          <p>Prioritized questions based on your specific report findings</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="questions-content">
+          <div class="section-loading">Generating questions...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Red Flags -->
+    <div class="card" id="red-flags-card" style="display:none">
+      <div class="card-header" style="background:#fff5f5;border-color:#fed7d7;">
+        <div class="step-num" style="background:#e53e3e;">!</div>
+        <div>
+          <h2 style="color:#9b2c2c;">Important Findings to Discuss Urgently</h2>
+          <p style="color:#742a2a;">These findings from your report warrant prompt follow-up</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="red-flags-list" id="red-flags-content"></ul>
+      </div>
+    </div>
+
+    <!-- Step 5: Clinical Trials -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-num">5</div>
+        <div>
+          <h2>Find Matching Clinical Trials</h2>
+          <p>Search recruiting trials on ClinicalTrials.gov based on your diagnosis</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="trial-search-row">
+          <input type="text" id="cancer-type-display" placeholder="Cancer type (auto-filled from report)" />
+          <input type="text" id="location-input" placeholder="City (optional)" />
+          <button class="btn-trials" id="trials-btn" onclick="searchTrials()">
+            Search Trials
+          </button>
+        </div>
+        <div id="trials-results"></div>
+      </div>
+    </div>
+
+  </div><!-- /#results -->
+
+</div><!-- /.container -->
+
+<div class="disclaimer-footer">
+  <strong>Important Disclaimer:</strong> Oncology Co-Pilot is an educational tool designed to help patients understand their medical reports and prepare for appointments.
+  It is <strong>not a substitute for professional medical advice, diagnosis, or treatment.</strong>
+  Always consult qualified oncologists and healthcare providers for medical decisions.
+  Clinical trial eligibility must be confirmed with the trial team. Results may be incomplete or inaccurate.
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+let analysisData = null;
+
+// ─── API Key ─────────────────────────────────────────────────────────────────
+function saveKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('Please enter a valid Anthropic API key (starts with sk-ant-)');
+    return;
+  }
+  sessionStorage.setItem('anthropic_key', key);
+  document.getElementById('key-status').style.display = 'block';
+  document.getElementById('api-key-input').value = '●'.repeat(20);
+}
+
+function getKey() {
+  return sessionStorage.getItem('anthropic_key');
+}
+
+// Check on load
+window.addEventListener('load', () => {
+  if (getKey()) {
+    document.getElementById('key-status').style.display = 'block';
+    document.getElementById('api-key-input').value = '●'.repeat(20);
+    document.getElementById('api-key-input').placeholder = 'Key saved for this session';
+  }
+});
+
+// ─── Sample Report ────────────────────────────────────────────────────────────
+function loadSampleReport() {
+  document.getElementById('report-textarea').value = `SURGICAL PATHOLOGY REPORT
+
+Patient: [Redacted]
+Accession #: SP-2024-00847
+Date Received: 2024-03-15
+Specimen: Right upper lobe core needle biopsy, CT-guided
+
+CLINICAL HISTORY:
+65-year-old male, 40 pack-year smoking history. CT chest reveals 3.2 cm right upper lobe mass with ipsilateral mediastinal lymphadenopathy. PET scan shows hypermetabolic primary lesion (SUVmax 12.4) and right hilar adenopathy (SUVmax 8.1).
+
+GROSS DESCRIPTION:
+Four cores of tan-gray tissue, ranging from 0.8 to 1.4 cm in length.
+
+MICROSCOPIC DESCRIPTION:
+Sections show malignant epithelial cells arranged in acinar, papillary, and micropapillary patterns with focal solid areas. Cells have moderate to abundant cytoplasm, vesicular nuclei, and prominent nucleoli. Mucin production is present. No squamous differentiation identified.
+
+DIAGNOSIS:
+INVASIVE ADENOCARCINOMA, moderately differentiated (Grade 2/3)
+
+IMMUNOHISTOCHEMISTRY:
+TTF-1: Positive (strong, diffuse)
+Napsin A: Positive
+p40: Negative
+CK5/6: Negative
+
+MOLECULAR/BIOMARKER TESTING:
+EGFR (Next Generation Sequencing): Exon 19 deletion (del E746-A750) DETECTED
+KRAS: Wild-type (no mutation detected)
+ALK (IHC): Negative
+ROS1 (FISH): Negative
+BRAF V600E: Not detected
+MET exon 14 skipping: Not detected
+RET rearrangement: Not detected
+
+PD-L1 Immunohistochemistry (22C3 antibody):
+Tumor Proportion Score (TPS): 35%
+Interpretation: PD-L1 positive (intermediate expression)
+
+TUMOR MUTATIONAL BURDEN (TMB): 6 mut/Mb (Low)
+
+STAGING INFORMATION (per pathology):
+Primary tumor size: 3.2 cm (by imaging)
+Pathologic stage: At least pT2a
+Lymphovascular invasion: Present
+Perineural invasion: Not identified
+
+COMMENT:
+The morphologic and immunohistochemical features are consistent with primary lung adenocarcinoma. The EGFR exon 19 deletion is a sensitizing mutation associated with response to EGFR tyrosine kinase inhibitors (TKIs). Clinical correlation and multidisciplinary tumor board discussion are recommended.`;
+}
+
+// ─── Main Analysis ────────────────────────────────────────────────────────────
+async function analyzeReport() {
+  const key = getKey();
+  if (!key) {
+    alert('Please enter and save your Anthropic API key first.');
+    return;
+  }
+  const reportText = document.getElementById('report-textarea').value.trim();
+  if (!reportText) {
+    alert('Please paste your pathology report first.');
+    return;
+  }
+
+  // UI state
+  setLoading(true);
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('summary-text').innerHTML = '<span class="streaming-cursor"></span>';
+  document.getElementById('biomarkers-content').innerHTML = '<div class="section-loading">Analyzing biomarkers...</div>';
+  document.getElementById('questions-content').innerHTML = '<div class="section-loading">Generating questions...</div>';
+  document.getElementById('red-flags-card').style.display = 'none';
+  document.getElementById('trials-results').innerHTML = '';
+
+  try {
+    const systemPrompt = `You are a highly knowledgeable oncology educator helping patients understand their pathology reports. You explain complex medical findings in clear, compassionate language that empowers patients to have better conversations with their medical team.
+
+IMPORTANT RULES:
+- Never provide a diagnosis or recommend specific treatments
+- Always encourage patients to discuss findings with their oncologist
+- Be accurate but accessible — avoid jargon where possible, explain it when necessary
+- Focus on helping patients understand what they have and what questions to ask
+- Be compassionate and avoid causing unnecessary fear`;
+
+    const userPrompt = `Analyze this pathology/medical report and return a JSON object with the following structure:
+
+{
+  "summary": "A clear, compassionate 3-5 paragraph plain-language explanation of what this report shows. Explain what type of cancer, where it is, how aggressive it appears, and what the key findings mean. Write for an educated non-medical person. DO NOT recommend treatments.",
+  "cancer_type": "The specific cancer type for clinical trial search (e.g., 'non-small cell lung adenocarcinoma' or 'stage III breast cancer HER2-positive'). Keep concise for search purposes.",
+  "stage": "Cancer stage if mentioned, otherwise 'Not specified'",
+  "biomarkers": [
+    {
+      "name": "Biomarker name (e.g., EGFR, HER2, PD-L1, KRAS, MSI, TMB)",
+      "result": "The result (e.g., 'Positive - Exon 19 deletion', 'Negative', 'TPS 35%', '6 mut/Mb')",
+      "result_category": "positive|negative|high|low|other",
+      "meaning": "What this biomarker is and what the result means in 1-2 sentences",
+      "implications": "How this result might affect treatment options (ask your doctor about X). DO NOT recommend specific treatments."
+    }
+  ],
+  "questions_to_ask": [
+    "Specific, high-value question for the oncologist based on actual findings in this report"
+  ],
+  "red_flags": [
+    "Any findings that suggest urgent follow-up is needed (e.g., extensive lymphovascular invasion, very high-grade tumor, borderline resectable disease)"
+  ]
+}
+
+Return ONLY valid JSON. No markdown, no explanation outside the JSON.
+
+REPORT:
+${reportText}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-6',
+        max_tokens: 4000,
+        thinking: { type: 'adaptive' },
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.content.find(b => b.type === 'text')?.text || '';
+
+    // Parse JSON from response
+    let jsonText = rawText.trim();
+    // Strip markdown code blocks if present
+    jsonText = jsonText.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+    jsonText = jsonText.replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
+
+    analysisData = JSON.parse(jsonText);
+    renderResults(analysisData);
+
+  } catch (err) {
+    document.getElementById('summary-text').innerHTML =
+      `<div class="error-box">Error: ${err.message}<br><br>Common causes: invalid API key, network issue, or malformed report text.</div>`;
+    document.getElementById('biomarkers-content').innerHTML = '';
+    document.getElementById('questions-content').innerHTML = '';
+  } finally {
+    setLoading(false);
+  }
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('analyze-btn');
+  const spinner = document.getElementById('btn-spinner');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled = loading;
+  spinner.style.display = loading ? 'block' : 'none';
+  btnText.textContent = loading ? 'Analyzing...' : '🔬 Analyze Report';
+}
+
+// ─── Render Results ───────────────────────────────────────────────────────────
+function renderResults(data) {
+  // Summary
+  document.getElementById('summary-text').textContent = data.summary || 'No summary available.';
+
+  // Biomarkers
+  renderBiomarkers(data.biomarkers || []);
+
+  // Questions
+  renderQuestions(data.questions_to_ask || []);
+
+  // Red flags
+  renderRedFlags(data.red_flags || []);
+
+  // Pre-fill cancer type for trials search
+  if (data.cancer_type) {
+    document.getElementById('cancer-type-display').value = data.cancer_type;
+  }
+
+  // Scroll to results
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderBiomarkers(biomarkers) {
+  const container = document.getElementById('biomarkers-content');
+  if (!biomarkers.length) {
+    container.innerHTML = '<p class="no-biomarkers">No specific biomarkers identified in this report, or the report does not include molecular testing results.</p>';
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'biomarker-grid';
+
+  biomarkers.forEach(bm => {
+    const card = document.createElement('div');
+    card.className = 'biomarker-card';
+
+    const cat = (bm.result_category || 'other').toLowerCase();
+    let badgeClass = 'bm-other';
+    if (cat === 'positive') badgeClass = 'bm-positive';
+    else if (cat === 'negative') badgeClass = 'bm-negative';
+    else if (cat === 'high') badgeClass = 'bm-high';
+    else if (cat === 'low') badgeClass = 'bm-negative';
+
+    card.innerHTML = `
+      <div class="bm-header">
+        <span class="bm-name">${esc(bm.name)}</span>
+        <span class="bm-result ${badgeClass}">${esc(bm.result)}</span>
+      </div>
+      <div class="bm-meaning">${esc(bm.meaning)}</div>
+      <div class="bm-implications">💊 ${esc(bm.implications)}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+
+function renderQuestions(questions) {
+  const container = document.getElementById('questions-content');
+  if (!questions.length) {
+    container.innerHTML = '<p class="no-biomarkers">No specific questions generated.</p>';
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.className = 'questions-list';
+  questions.forEach((q, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="q-num">${i + 1}</span><span>${esc(q)}</span>`;
+    ul.appendChild(li);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(ul);
+}
+
+function renderRedFlags(flags) {
+  const card = document.getElementById('red-flags-card');
+  const container = document.getElementById('red-flags-content');
+
+  if (!flags.length) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  container.innerHTML = '';
+  flags.forEach(flag => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="flag-icon">⚠️</span><span>${esc(flag)}</span>`;
+    container.appendChild(li);
+  });
+}
+
+// ─── Clinical Trials ──────────────────────────────────────────────────────────
+async function searchTrials() {
+  const cancerType = document.getElementById('cancer-type-display').value.trim();
+  const location = document.getElementById('location-input').value.trim();
+
+  if (!cancerType) {
+    alert('Please enter a cancer type to search for trials.');
+    return;
+  }
+
+  const btn = document.getElementById('trials-btn');
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+
+  const resultsDiv = document.getElementById('trials-results');
+  resultsDiv.innerHTML = '<div class="info-box">Searching ClinicalTrials.gov...</div>';
+
+  try {
+    // Build query
+    let url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(cancerType)}&filter.overallStatus=RECRUITING&pageSize=8&sort=LastUpdatePostDate:desc`;
+    if (location) {
+      url += `&query.locn=${encodeURIComponent(location)}`;
+    }
+    url += `&fields=NCTId,BriefTitle,BriefSummary,OverallStatus,Phase,LocationFacility,LocationCity,LocationState`;
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`ClinicalTrials.gov API error: ${response.status}`);
+
+    const data = await response.json();
+    const studies = data.studies || [];
+
+    if (!studies.length) {
+      resultsDiv.innerHTML = `<div class="info-box">No recruiting trials found for "${cancerType}"${location ? ` near ${location}` : ''}. Try a broader search term (e.g., "lung cancer" instead of a specific subtype).</div>`;
+      return;
+    }
+
+    resultsDiv.innerHTML = `<p style="font-size:13px;color:#718096;margin-bottom:14px;">Found ${data.totalCount || studies.length} recruiting trial(s) — showing ${studies.length}. Results from <a href="https://clinicaltrials.gov" target="_blank" style="color:#6b46c1;">ClinicalTrials.gov</a>.</p>`;
+
+    studies.forEach(study => {
+      const m = study.protocolSection;
+      const id = study.protocolSection?.identificationModule;
+      const status = study.protocolSection?.statusModule;
+      const desc = study.protocolSection?.descriptionModule;
+      const design = study.protocolSection?.designModule;
+
+      const nctId = id?.nctId || '';
+      const title = id?.briefTitle || 'Untitled Study';
+      const summary = desc?.briefSummary || '';
+      const phase = design?.phases?.join(', ') || '';
+      const overallStatus = status?.overallStatus || '';
+
+      const card = document.createElement('div');
+      card.className = 'trial-card';
+      card.innerHTML = `
+        <div class="trial-header">
+          <div class="trial-title">${esc(title)}</div>
+          <div class="trial-badges">
+            ${overallStatus === 'RECRUITING' ? '<span class="badge badge-recruiting">Recruiting</span>' : ''}
+            ${phase ? `<span class="badge badge-phase">${esc(phase)}</span>` : ''}
+          </div>
+        </div>
+        <div class="trial-nct">${esc(nctId)}</div>
+        <div class="trial-summary">${esc(summary)}</div>
+        ${nctId ? `<a class="trial-link" href="https://clinicaltrials.gov/study/${nctId}" target="_blank">View full trial details → ClinicalTrials.gov</a>` : ''}
+      `;
+      resultsDiv.appendChild(card);
+    });
+
+  } catch (err) {
+    resultsDiv.innerHTML = `<div class="error-box">Error searching trials: ${err.message}<br>You can search directly at <a href="https://clinicaltrials.gov" target="_blank">clinicaltrials.gov</a></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Search Trials';
+  }
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+</script>
+
+</body>
+</html>

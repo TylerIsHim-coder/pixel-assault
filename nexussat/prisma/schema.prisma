@@ -1,0 +1,160 @@
+// NexusSAT — Prisma Schema
+// Dev:  SQLite  (DATABASE_URL="file:./dev.db")
+// Prod: PostgreSQL (swap provider to "postgresql")
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Users
+// ─────────────────────────────────────────────
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  folders      Folder[]
+  notes        Note[]
+  userAttempts UserAttempt[]
+  examSessions ExamSession[]
+}
+
+// ─────────────────────────────────────────────
+// Study Vault — nested folders
+// ─────────────────────────────────────────────
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#6366f1") // hex for UI badge
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentId String?
+  parent   Folder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderChildren")
+
+  notes Note[]
+
+  @@index([userId])
+  @@index([parentId])
+}
+
+// ─────────────────────────────────────────────
+// Notes — AI-generated or manual, stored as Markdown
+// ─────────────────────────────────────────────
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   // Markdown
+  topic     String?  // original user prompt used for AI generation
+  isAiGen   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([folderId])
+}
+
+// ─────────────────────────────────────────────
+// SAT Categories (enum-like, stored as string)
+// Heart of Algebra | Problem Solving & Data Analysis | Passport to Advanced Math |
+// Additional Topics | Information & Ideas | Craft & Structure | Expression of Ideas |
+// Standard English Conventions
+// ─────────────────────────────────────────────
+model Question {
+  id           String  @id @default(cuid())
+  category     String  // SAT section category
+  section      String  // "Math" | "Reading & Writing"
+  difficulty   String  @default("medium") // "easy" | "medium" | "hard"
+  stem         String  // Question text (Markdown supported)
+  choices      String  // JSON array: [{id, text}]
+  correctId    String  // matches one of the choice ids
+  explanation  String  // AI-ready explanation (Markdown)
+  source       String  @default("seed") // "seed" | "official" | "ai"
+  createdAt    DateTime @default(now())
+
+  userAttempts UserAttempt[]
+  examItems    ExamItem[]
+
+  @@index([category])
+  @@index([section])
+  @@index([difficulty])
+}
+
+// ─────────────────────────────────────────────
+// Individual practice attempt on a single question
+// ─────────────────────────────────────────────
+model UserAttempt {
+  id          String   @id @default(cuid())
+  chosenId    String   // the choice the user selected
+  isCorrect   Boolean
+  timeSpentMs Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+}
+
+// ─────────────────────────────────────────────
+// Full timed exam session (Exam Mode / Focus Mode)
+// ─────────────────────────────────────────────
+model ExamSession {
+  id          String    @id @default(cuid())
+  section     String    // "Math" | "Reading & Writing" | "Full"
+  timeLimitS  Int       // seconds
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Int?      // raw correct count
+  totalItems  Int
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ExamItem[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Per-question state within an exam session
+// ─────────────────────────────────────────────
+model ExamItem {
+  id            String  @id @default(cuid())
+  position      Int     // 1-based question order
+  chosenId      String? // null = unanswered
+  isMarked      Boolean @default(false) // "mark for review"
+  isCorrect     Boolean?
+  timeSpentMs   Int     @default(0)
+
+  sessionId  String
+  session    ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  questionId String
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, position])
+  @@index([sessionId])
+}

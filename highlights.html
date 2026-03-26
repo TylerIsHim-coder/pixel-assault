@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX — AI Sports Highlights</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #07070f;
+      --bg2: #0d0d1a;
+      --surface: #111122;
+      --surface2: #1a1a30;
+      --pink: #ff2070;
+      --pink2: #ff5090;
+      --purple: #8b30ff;
+      --purple2: #aa60ff;
+      --cyan: #00e5ff;
+      --text: #eeeeff;
+      --text-dim: #7777aa;
+      --text-muted: #44445a;
+      --border: rgba(139, 48, 255, 0.25);
+      --border-pink: rgba(255, 32, 112, 0.3);
+      --glow-pink: 0 0 20px rgba(255, 32, 112, 0.4), 0 0 60px rgba(255, 32, 112, 0.15);
+      --glow-purple: 0 0 20px rgba(139, 48, 255, 0.4), 0 0 60px rgba(139, 48, 255, 0.15);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ──── GLOBAL UTILITIES ──── */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .gap-4 { gap: 1rem; }
+    .w-full { width: 100%; }
+
+    /* ──── CYBER GRID BACKGROUND ──── */
+    .cyber-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        linear-gradient(rgba(139,48,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,48,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .cyber-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(139,48,255,0.12) 0%, transparent 65%),
+                  radial-gradient(ellipse at 80% 100%, rgba(255,32,112,0.1) 0%, transparent 55%);
+    }
+
+    /* ──── SCANLINES ──── */
+    .scanlines {
+      position: fixed; inset: 0; pointer-events: none; z-index: 1000;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    }
+
+    /* ──── BUTTONS ──── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.75rem 2rem; border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; border: none; transition: all 0.2s ease;
+      position: relative; overflow: hidden; text-decoration: none;
+    }
+    .btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .btn:hover::before { opacity: 1; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      color: #fff; box-shadow: var(--glow-pink);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(255,32,112,0.5), 0 0 80px rgba(255,32,112,0.2); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn-outline:hover { border-color: var(--purple2); color: var(--text); box-shadow: var(--glow-purple); }
+
+    .btn-ghost {
+      background: transparent; color: var(--text-dim); padding: 0.5rem 1rem;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* ──── INPUT ──── */
+    .input {
+      width: 100%; padding: 0.85rem 1.1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text);
+      font-size: 1rem; outline: none;
+      transition: all 0.2s;
+    }
+    .input:focus {
+      border-color: var(--purple); background: rgba(139,48,255,0.06);
+      box-shadow: 0 0 0 3px rgba(139,48,255,0.15);
+    }
+    .input::placeholder { color: var(--text-muted); }
+
+    /* ──── GLOW TEXT ──── */
+    .glow-text {
+      background: linear-gradient(135deg, var(--pink2) 0%, var(--purple2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ──── PAGE WRAPPER ──── */
+    .page {
+      position: relative; min-height: 100vh; z-index: 10;
+    }
+
+    /* ════════════════════════════════════════
+       SIGN IN PAGE
+    ════════════════════════════════════════ */
+    #page-signin {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .signin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem 2.5rem;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 0 40px rgba(139,48,255,0.1), 0 0 0 1px rgba(139,48,255,0.08);
+      position: relative; overflow: hidden;
+    }
+    .signin-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 0.6rem; margin-bottom: 2.5rem;
+    }
+    .logo-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; box-shadow: var(--glow-pink);
+    }
+    .logo-name { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.1em; }
+
+    .signin-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .signin-sub { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem; }
+
+    .signin-divider { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin: 1.2rem 0; position: relative; }
+    .signin-divider::before, .signin-divider::after {
+      content: ''; position: absolute; top: 50%; width: calc(50% - 1.5rem);
+      height: 1px; background: var(--border);
+    }
+    .signin-divider::before { left: 0; }
+    .signin-divider::after { right: 0; }
+
+    .social-btn {
+      width: 100%; padding: 0.75rem; border-radius: 6px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .social-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--purple2); }
+
+    .signin-footer { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
+    .link { color: var(--purple2); cursor: pointer; text-decoration: underline; }
+
+    /* ════════════════════════════════════════
+       ONBOARDING SLIDESHOW
+    ════════════════════════════════════════ */
+    #page-onboarding {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+
+    .slide-wrapper {
+      width: 100%; max-width: 640px;
+      position: relative;
+    }
+
+    .slide {
+      display: none; flex-direction: column; align-items: center; text-align: center;
+      animation: slideIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+    .slide.active { display: flex; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+    .slide.exiting { animation: slideOut 0.3s ease forwards; }
+
+    .slide-icon {
+      width: 90px; height: 90px; border-radius: 22px; margin-bottom: 2rem;
+      display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+      background: linear-gradient(135deg, rgba(255,32,112,0.2), rgba(139,48,255,0.2));
+      border: 1px solid rgba(139,48,255,0.3);
+      box-shadow: 0 0 40px rgba(139,48,255,0.2), inset 0 0 30px rgba(255,32,112,0.05);
+      animation: iconFloat 3s ease-in-out infinite;
+    }
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .slide-tag {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--pink); margin-bottom: 1rem;
+      background: rgba(255,32,112,0.1); border: 1px solid rgba(255,32,112,0.2);
+      padding: 0.3rem 0.9rem; border-radius: 100px;
+    }
+
+    .slide-title { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+    .slide-desc { color: var(--text-dim); font-size: 1.05rem; line-height: 1.7; max-width: 480px; }
+
+    .slide-visual {
+      margin: 2rem 0;
+      width: 100%; max-width: 480px; height: 200px;
+      border-radius: 12px; overflow: hidden;
+      background: var(--surface2); border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* Slide 1 visual - video scan animation */
+    .scan-visual {
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scan-grid {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(rgba(139,48,255,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,48,255,0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scan-line {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--pink), var(--purple), var(--pink), transparent);
+      box-shadow: 0 0 20px var(--pink);
+      animation: scanDown 2s linear infinite;
+      top: 0;
+    }
+    @keyframes scanDown {
+      from { top: 0; }
+      to { top: 100%; }
+    }
+    .scan-dots {
+      position: absolute; inset: 0;
+    }
+    .scan-dot {
+      position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--pink); box-shadow: 0 0 8px var(--pink);
+      animation: dotPulse 1s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .scan-center-text {
+      position: relative; z-index: 2; color: var(--purple2);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    }
+
+    /* Slide 2 visual - highlight cards */
+    .highlight-visual {
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .hl-card {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.6rem 0.9rem;
+      opacity: 0; transform: translateX(-20px);
+    }
+    .hl-card.animate { animation: cardSlide 0.5s forwards; }
+    @keyframes cardSlide {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .hl-icon { font-size: 1.2rem; }
+    .hl-text { font-size: 0.8rem; color: var(--text-dim); flex: 1; text-align: left; }
+    .hl-badge {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.2rem 0.5rem; border-radius: 4px;
+    }
+    .hl-badge.goal { background: rgba(255,32,112,0.2); color: var(--pink); border: 1px solid rgba(255,32,112,0.3); }
+    .hl-badge.assist { background: rgba(139,48,255,0.2); color: var(--purple2); border: 1px solid rgba(139,48,255,0.3); }
+    .hl-badge.shot { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+
+    /* Slide 3 visual - reel preview */
+    .reel-visual {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem;
+    }
+    .reel-frame {
+      border-radius: 6px; overflow: hidden; border: 1px solid var(--border);
+      background: var(--surface); flex-shrink: 0; transition: transform 0.3s;
+    }
+    .reel-frame:hover { transform: scale(1.05); }
+    .reel-frame img { display: block; }
+    .reel-center {
+      width: 120px; height: 80px; background: linear-gradient(135deg, rgba(255,32,112,0.3), rgba(139,48,255,0.3));
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
+    }
+    .reel-side {
+      width: 80px; height: 60px; background: rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+      opacity: 0.6;
+    }
+
+    /* Slide 4 - name input */
+    .name-input-wrapper { margin: 2rem 0; width: 100%; max-width: 380px; }
+    .name-input-large {
+      width: 100%; padding: 1.1rem 1.3rem;
+      background: rgba(139,48,255,0.06); border: 2px solid var(--purple);
+      border-radius: 10px; color: var(--text); font-size: 1.3rem; font-weight: 600;
+      outline: none; text-align: center; letter-spacing: 0.04em;
+      transition: all 0.3s;
+    }
+    .name-input-large:focus {
+      border-color: var(--pink); box-shadow: 0 0 0 4px rgba(255,32,112,0.15);
+      background: rgba(255,32,112,0.06);
+    }
+    .name-input-large::placeholder { color: var(--text-muted); font-weight: 400; }
+
+    /* Slide progress dots */
+    .slide-progress {
+      display: flex; gap: 0.5rem; margin-top: 2.5rem;
+    }
+    .progress-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-muted); transition: all 0.3s;
+    }
+    .progress-dot.active {
+      width: 24px; border-radius: 3px;
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+    }
+
+    .slide-actions {
+      display: flex; align-items: center; gap: 1rem; margin-top: 2rem;
+    }
+
+    /* ════════════════════════════════════════
+       APP SHELL (dashboard + nav)
+    ════════════════════════════════════════ */
+    #app-shell { display: flex; min-height: 100vh; }
+
+    /* ──── SIDEBAR NAV ──── */
+    .sidebar {
+      width: 72px; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 1.2rem 0; gap: 0.5rem; position: fixed; top: 0; left: 0; height: 100vh; z-index: 50;
+      transition: width 0.3s cubic-bezier(0.23,1,0.32,1);
+    }
+    .sidebar:hover { width: 200px; }
+
+    .sidebar-logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 900; letter-spacing: -0.05em;
+      box-shadow: var(--glow-pink); margin-bottom: 1.5rem; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .sidebar-logo-full {
+      opacity: 0; white-space: nowrap; overflow: hidden; transition: opacity 0.2s;
+      font-size: 1rem; font-weight: 800; letter-spacing: 0.1em;
+    }
+    .sidebar:hover .sidebar-logo-full { opacity: 1; }
+
+    .nav-item {
+      width: 100%; display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.75rem 1rem; cursor: pointer; border-radius: 8px; margin: 0 0.4rem;
+      transition: all 0.2s; color: var(--text-dim); font-size: 0.85rem;
+      font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      position: relative; overflow: hidden;
+    }
+    .nav-item:hover { background: rgba(139,48,255,0.1); color: var(--text); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(255,32,112,0.15), rgba(139,48,255,0.15));
+      color: var(--text);
+      border: 1px solid rgba(139,48,255,0.25);
+    }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(to bottom, var(--pink), var(--purple));
+      border-radius: 0 2px 2px 0;
+    }
+    .nav-icon { font-size: 1.2rem; flex-shrink: 0; width: 24px; text-align: center; }
+    .nav-label { opacity: 0; white-space: nowrap; overflow: hidden; transition: opacity 0.2s; }
+    .sidebar:hover .nav-label { opacity: 1; }
+
+    .sidebar-bottom { margin-top: auto; }
+    .avatar-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      transition: transform 0.2s; box-shadow: 0 0 12px rgba(255,32,112,0.3);
+    }
+    .avatar-btn:hover { transform: scale(1.1); }
+
+    /* ──── MAIN CONTENT ──── */
+    .main-content {
+      margin-left: 72px; flex: 1; padding: 2rem;
+      position: relative; min-height: 100vh;
+    }
+
+    /* ──── TOP BAR ──── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2.5rem;
+    }
+    .topbar-greeting { font-size: 1.85rem; font-weight: 800; }
+    .topbar-sub { color: var(--text-dim); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    .compose-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.3rem; font-weight: 300;
+      box-shadow: var(--glow-pink); transition: all 0.2s;
+      border: none;
+    }
+    .compose-btn:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 0 30px rgba(255,32,112,0.6); }
+
+    /* ──── DASHBOARD ──── */
+    .section-title {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.4rem 1.5rem; position: relative; overflow: hidden;
+      transition: all 0.25s;
+    }
+    .stat-card:hover { border-color: rgba(139,48,255,0.5); transform: translateY(-2px); box-shadow: var(--glow-purple); }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-val { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.3rem; }
+    .stat-icon { position: absolute; top: 1rem; right: 1rem; font-size: 1.4rem; opacity: 0.4; }
+
+    .empty-dashboard {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 4rem 2rem; text-align: center;
+      border: 1px dashed rgba(139,48,255,0.2); border-radius: 16px;
+      background: rgba(139,48,255,0.02);
+    }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-dim); }
+    .empty-desc { font-size: 0.9rem; color: var(--text-muted); max-width: 300px; line-height: 1.6; }
+
+    /* Recent Reels */
+    .reels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
+    .reel-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; cursor: pointer; transition: all 0.25s;
+    }
+    .reel-card:hover { border-color: rgba(255,32,112,0.4); transform: translateY(-3px); box-shadow: var(--glow-pink); }
+    .reel-thumb {
+      height: 160px; background: linear-gradient(135deg, var(--surface2), rgba(139,48,255,0.15));
+      display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+    }
+    .reel-thumb-icon { font-size: 2.5rem; opacity: 0.6; }
+    .reel-thumb-badge {
+      position: absolute; top: 0.75rem; left: 0.75rem;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.25rem 0.6rem; border-radius: 4px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+    }
+    .reel-thumb-play {
+      position: absolute; bottom: 0.75rem; right: 0.75rem;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    }
+    .reel-info { padding: 1rem 1.1rem; }
+    .reel-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .reel-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 0.8rem; }
+    .reel-meta span { display: flex; align-items: center; gap: 0.25rem; }
+
+    /* ════════════════════════════════════════
+       CREATE PAGE
+    ════════════════════════════════════════ */
+    .create-wrapper { max-width: 760px; margin: 0 auto; }
+    .create-header { margin-bottom: 2rem; }
+    .create-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .create-sub { color: var(--text-dim); font-size: 0.95rem; }
+
+    .upload-zone {
+      border: 2px dashed rgba(139,48,255,0.4); border-radius: 16px;
+      padding: 4rem 2rem; text-align: center; cursor: pointer;
+      background: rgba(139,48,255,0.03); transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--purple); background: rgba(139,48,255,0.08);
+      box-shadow: 0 0 40px rgba(139,48,255,0.1);
+    }
+    .upload-zone.has-file {
+      border-color: var(--pink); background: rgba(255,32,112,0.05);
+    }
+    .upload-icon { font-size: 3.5rem; margin-bottom: 1.2rem; }
+    .upload-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .upload-desc { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
+    .upload-formats {
+      margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .upload-input { display: none; }
+
+    .file-preview {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--surface2); border: 1px solid var(--border-pink);
+      border-radius: 10px; padding: 1rem 1.2rem; margin-top: 1rem;
+    }
+    .file-preview-icon { font-size: 1.8rem; }
+    .file-preview-info { flex: 1; }
+    .file-preview-name { font-size: 0.9rem; font-weight: 600; }
+    .file-preview-size { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .file-preview-remove { cursor: pointer; color: var(--text-muted); transition: color 0.2s; font-size: 1.1rem; }
+    .file-preview-remove:hover { color: var(--pink); }
+
+    .analyze-options { margin-top: 2rem; }
+    .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+    .option-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .option-card:hover { border-color: var(--purple2); background: rgba(139,48,255,0.05); }
+    .option-card.selected {
+      border-color: var(--pink); background: rgba(255,32,112,0.08);
+      box-shadow: 0 0 0 1px rgba(255,32,112,0.2);
+    }
+    .option-check {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem;
+      transition: all 0.2s;
+    }
+    .option-card.selected .option-check {
+      background: linear-gradient(135deg, var(--pink), var(--purple)); border-color: transparent; color: #fff;
+    }
+    .option-label { font-size: 0.87rem; font-weight: 600; }
+    .option-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    .sport-select-row { margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+    .form-field { flex: 1; min-width: 180px; }
+    .form-field label { display: block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .select-input {
+      width: 100%; padding: 0.8rem 1rem;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 0.9rem; outline: none;
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237777aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.8rem center;
+      transition: all 0.2s;
+    }
+    .select-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,48,255,0.15); }
+    .select-input option { background: var(--surface); }
+
+    .analyze-cta { margin-top: 2.5rem; }
+
+    /* ════════════════════════════════════════
+       LOADING SCREEN
+    ════════════════════════════════════════ */
+    #page-loading {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg); display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    .loading-inner { width: 100%; max-width: 540px; padding: 2rem; text-align: center; }
+
+    .loading-orb {
+      width: 120px; height: 120px; margin: 0 auto 2.5rem;
+      position: relative;
+    }
+    .orb-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 2px solid transparent;
+    }
+    .orb-ring-1 {
+      border-top-color: var(--pink); border-right-color: var(--pink);
+      animation: spin 1s linear infinite;
+    }
+    .orb-ring-2 {
+      inset: 10px; border-bottom-color: var(--purple); border-left-color: var(--purple);
+      animation: spin 1.5s linear infinite reverse;
+    }
+    .orb-ring-3 {
+      inset: 22px; border-top-color: rgba(0,229,255,0.5); border-right-color: rgba(0,229,255,0.5);
+      animation: spin 2s linear infinite;
+    }
+    .orb-center {
+      position: absolute; inset: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,32,112,0.3), rgba(139,48,255,0.5));
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+      box-shadow: 0 0 30px rgba(255,32,112,0.3);
+      animation: orbPulse 2s ease-in-out infinite;
+    }
+    @keyframes orbPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,32,112,0.3); }
+      50% { box-shadow: 0 0 40px rgba(255,32,112,0.6), 0 0 80px rgba(139,48,255,0.2); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .loading-phase {
+      font-size: 0.85rem; color: var(--purple2); letter-spacing: 0.12em; text-transform: uppercase;
+      font-weight: 600; margin-bottom: 2rem; min-height: 1.2em;
+      transition: opacity 0.3s;
+    }
+
+    .loading-bar-container {
+      background: rgba(255,255,255,0.05); border-radius: 100px; height: 4px;
+      margin-bottom: 0.7rem; overflow: hidden;
+    }
+    .loading-bar {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--pink));
+      background-size: 200% 100%;
+      animation: barShimmer 1.5s linear infinite;
+      transition: width 0.5s cubic-bezier(0.23,1,0.32,1);
+      width: 0%;
+    }
+    @keyframes barShimmer {
+      from { background-position: 200% center; }
+      to { background-position: -200% center; }
+    }
+    .loading-pct { font-size: 0.78rem; color: var(--text-muted); text-align: right; margin-bottom: 2rem; }
+
+    .loading-log {
+      text-align: left; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem; max-height: 160px; overflow-y: auto;
+      font-family: 'Courier New', monospace; font-size: 0.75rem;
+    }
+    .log-line {
+      display: flex; gap: 0.75rem; padding: 0.15rem 0;
+      opacity: 0; animation: logFadeIn 0.3s forwards;
+      color: var(--text-dim);
+    }
+    .log-line.ok .log-status { color: #4ade80; }
+    .log-line.info .log-status { color: var(--purple2); }
+    .log-line.warn .log-status { color: var(--pink); }
+    @keyframes logFadeIn { to { opacity: 1; } }
+
+    /* ════════════════════════════════════════
+       RESULTS PAGE
+    ════════════════════════════════════════ */
+    .results-wrapper { max-width: 900px; }
+    .results-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: gap; gap: 1rem; }
+    .results-title { font-size: 1.6rem; font-weight: 800; }
+    .results-sub { color: var(--text-dim); font-size: 0.9rem; margin-top: 0.3rem; }
+
+    .video-player-container {
+      background: #000; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border); margin-bottom: 2rem;
+      position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    .video-player-container video {
+      width: 100%; display: block; max-height: 400px;
+    }
+    .video-overlay-badge {
+      position: absolute; top: 1rem; left: 1rem;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.3rem 0.75rem; border-radius: 100px;
+    }
+
+    .highlights-section { margin-bottom: 2rem; }
+    .highlights-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .highlight-item {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.9rem 1.1rem; cursor: pointer; transition: all 0.2s;
+    }
+    .highlight-item:hover { border-color: rgba(255,32,112,0.4); background: rgba(255,32,112,0.04); }
+    .highlight-item.playing { border-color: var(--pink); background: rgba(255,32,112,0.08); box-shadow: 0 0 0 1px rgba(255,32,112,0.15); }
+    .hl-time {
+      font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--pink);
+      font-weight: 700; flex-shrink: 0; min-width: 48px;
+    }
+    .hl-type-badge {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.2rem 0.6rem; border-radius: 4px; flex-shrink: 0;
+    }
+    .hl-type-badge.GOAL { background: rgba(255,32,112,0.2); color: var(--pink); border: 1px solid rgba(255,32,112,0.3); }
+    .hl-type-badge.ASSIST { background: rgba(139,48,255,0.2); color: var(--purple2); border: 1px solid rgba(139,48,255,0.3); }
+    .hl-type-badge.SHOT { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+    .hl-type-badge.SAVE { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+    .hl-type-badge.SKILL { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .hl-desc { flex: 1; font-size: 0.88rem; color: var(--text-dim); }
+    .hl-conf {
+      font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .hl-conf-bar { width: 40px; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+    .hl-conf-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--purple), var(--pink)); }
+
+    .hl-play-btn {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,32,112,0.1); border: 1px solid rgba(255,32,112,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+      transition: all 0.2s;
+    }
+    .highlight-item:hover .hl-play-btn { background: rgba(255,32,112,0.25); }
+
+    .results-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ──── ANIMATIONS ──── */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    .fade-in { animation: fadeIn 0.5s ease forwards; }
+    .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+
+    /* Particle canvas */
+    #particles { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .main-content { padding: 1.2rem; }
+      .topbar-greeting { font-size: 1.4rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="cyber-bg"></div>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<!-- ══════════ SIGN IN ══════════ -->
+<div id="page-signin" class="page">
+  <div class="signin-card">
+    <div class="logo">
+      <div class="logo-icon">▲</div>
+      <span class="logo-name glow-text">APEX</span>
+    </div>
+    <h1 class="signin-title">Welcome back</h1>
+    <p class="signin-sub">Sign in to your highlight engine.</p>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="input" id="signin-email" placeholder="you@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="input" id="signin-password" placeholder="••••••••">
+    </div>
+
+    <button class="btn btn-primary w-full" id="signin-btn" style="margin-top:1rem; width:100%">Sign In</button>
+
+    <div class="signin-divider">or continue with</div>
+
+    <button class="social-btn" id="google-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <p class="signin-footer">Don't have an account? <span class="link">Sign up free</span></p>
+  </div>
+</div>
+
+<!-- ══════════ ONBOARDING ══════════ -->
+<div id="page-onboarding" class="hidden">
+  <div class="slide-wrapper">
+
+    <!-- Slide 1 -->
+    <div class="slide active" id="slide-1">
+      <div class="slide-icon">🎬</div>
+      <div class="slide-tag">Welcome to APEX</div>
+      <h2 class="slide-title">Your plays deserve<br><span class="glow-text">to be seen.</span></h2>
+      <p class="slide-desc">APEX uses advanced AI to scan your raw game footage and automatically find your best moments — no editing skills required.</p>
+      <div class="slide-visual scan-visual">
+        <div class="scan-grid"></div>
+        <div class="scan-line"></div>
+        <div class="scan-dots" id="scan-dots"></div>
+        <span class="scan-center-text">AI Vision Engine v3.1</span>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" id="slide-2">
+      <div class="slide-icon">⚡</div>
+      <div class="slide-tag">AI Analysis</div>
+      <h2 class="slide-title">Every highlight,<br><span class="glow-text">automatically found.</span></h2>
+      <p class="slide-desc">Goals. Assists. Saves. Skill moves. APEX detects it all with frame-by-frame precision so nothing slips through the cracks.</p>
+      <div class="slide-visual highlight-visual" id="hl-visual">
+        <div class="hl-card" style="animation-delay:0.1s">
+          <span class="hl-icon">⚽</span>
+          <span class="hl-text">Confident finish, top corner</span>
+          <span class="hl-badge goal">GOAL</span>
+        </div>
+        <div class="hl-card" style="animation-delay:0.3s">
+          <span class="hl-icon">🎯</span>
+          <span class="hl-text">Through-ball into the box</span>
+          <span class="hl-badge assist">ASSIST</span>
+        </div>
+        <div class="hl-card" style="animation-delay:0.5s">
+          <span class="hl-icon">💨</span>
+          <span class="hl-text">Outside-of-the-boot strike</span>
+          <span class="hl-badge shot">SHOT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" id="slide-3">
+      <div class="slide-icon">🏆</div>
+      <div class="slide-tag">Your Reel</div>
+      <h2 class="slide-title">Share your story<br><span class="glow-text">in seconds.</span></h2>
+      <p class="slide-desc">Get a polished highlight reel ready to share. Use it for recruiting, social media, or just to relive the best moments of your game.</p>
+      <div class="slide-visual reel-visual">
+        <div class="reel-frame reel-side"><span>🥅</span></div>
+        <div class="reel-frame reel-center"><span>🎬</span></div>
+        <div class="reel-frame reel-side"><span>🏃</span></div>
+      </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide" id="slide-4">
+      <div class="slide-icon">👤</div>
+      <div class="slide-tag">One last thing</div>
+      <h2 class="slide-title">What should we<br><span class="glow-text">call you?</span></h2>
+      <p class="slide-desc">We'll use this to personalize your experience on APEX.</p>
+      <div class="name-input-wrapper">
+        <input type="text" class="name-input-large" id="user-name-input" placeholder="Your name…" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex; flex-direction:column; align-items:center; margin-top:1rem;">
+      <div class="slide-actions">
+        <button class="btn btn-outline" id="slide-back-btn" style="display:none">← Back</button>
+        <button class="btn btn-primary" id="slide-next-btn">Continue →</button>
+      </div>
+      <div class="slide-progress" id="slide-progress">
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP SHELL ══════════ -->
+<div id="app-shell" class="hidden">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div style="display:flex;align-items:center;gap:0.6rem;padding:0 0.4rem;margin-bottom:1.5rem;">
+      <div class="sidebar-logo">▲</div>
+      <span class="sidebar-logo-full glow-text">APEX</span>
+    </div>
+    <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+      <span class="nav-icon">⌂</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" id="nav-create" onclick="showPage('create')">
+      <span class="nav-icon">✦</span>
+      <span class="nav-label">Create</span>
+    </div>
+    <div class="nav-item" id="nav-reels" onclick="showPage('dashboard')">
+      <span class="nav-icon">▶</span>
+      <span class="nav-label">My Reels</span>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" id="nav-settings">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </div>
+      <div style="padding:0.75rem 1rem;display:flex;align-items:center;gap:0.8rem;">
+        <div class="avatar-btn" id="user-avatar">?</div>
+        <span class="nav-label" id="sidebar-username" style="opacity:0;font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD PAGE ── -->
+    <div id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="topbar-greeting" id="dashboard-greeting">What's up 👋</div>
+          <div class="topbar-sub" id="dashboard-date"></div>
+        </div>
+        <button class="compose-btn" title="New Highlight Reel" onclick="showPage('create')">+</button>
+      </div>
+
+      <div class="section-title">Your Stats</div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card fade-in-up" style="animation-delay:0.05s">
+          <div class="stat-icon">🎬</div>
+          <div class="stat-val glow-text" id="stat-reels">0</div>
+          <div class="stat-label">Reels Created</div>
+        </div>
+        <div class="stat-card fade-in-up" style="animation-delay:0.1s">
+          <div class="stat-icon">⚽</div>
+          <div class="stat-val glow-text" id="stat-highlights">0</div>
+          <div class="stat-label">Highlights Found</div>
+        </div>
+        <div class="stat-card fade-in-up" style="animation-delay:0.15s">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-val glow-text" id="stat-goals">0</div>
+          <div class="stat-label">Goals Detected</div>
+        </div>
+        <div class="stat-card fade-in-up" style="animation-delay:0.2s">
+          <div class="stat-icon">⏱</div>
+          <div class="stat-val glow-text" id="stat-minutes">0</div>
+          <div class="stat-label">Minutes Analyzed</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:1.5rem;">Recent Reels</div>
+      <div id="reels-empty" class="empty-dashboard">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-title">No reels yet</div>
+        <div class="empty-desc">Upload your first game footage and let APEX find your highlights automatically.</div>
+        <button class="btn btn-primary" style="margin-top:1.5rem" onclick="showPage('create')">Create My First Reel</button>
+      </div>
+      <div id="reels-grid" class="reels-grid hidden"></div>
+    </div>
+
+    <!-- ── CREATE PAGE ── -->
+    <div id="view-create" class="hidden">
+      <div class="create-wrapper">
+        <div class="create-header">
+          <h1 class="create-title">Create Highlight Reel</h1>
+          <p class="create-sub">Upload your raw footage and APEX will extract every key moment automatically.</p>
+        </div>
+
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" class="upload-input" id="video-upload" accept="video/*">
+          <div class="upload-icon">📹</div>
+          <div class="upload-title">Drop your game footage here</div>
+          <div class="upload-desc">Or click to browse files from your device</div>
+          <div class="upload-formats">MP4 · MOV · AVI · MKV — up to 4GB</div>
+        </div>
+
+        <div id="file-preview" class="file-preview hidden">
+          <span class="file-preview-icon">🎥</span>
+          <div class="file-preview-info">
+            <div class="file-preview-name" id="preview-filename">–</div>
+            <div class="file-preview-size" id="preview-filesize">–</div>
+          </div>
+          <span class="file-preview-remove" id="remove-file" title="Remove">✕</span>
+        </div>
+
+        <div class="analyze-options">
+          <div class="section-title">Detect Highlights</div>
+          <div class="option-grid" id="option-grid">
+            <div class="option-card selected" data-option="goals">
+              <div class="option-check">✓</div>
+              <div><div class="option-label">Goals & Scores</div><div class="option-desc">Every time the ball hits the net</div></div>
+            </div>
+            <div class="option-card selected" data-option="assists">
+              <div class="option-check">✓</div>
+              <div><div class="option-label">Assists & Key Passes</div><div class="option-desc">Game-changing passes & assists</div></div>
+            </div>
+            <div class="option-card selected" data-option="shots">
+              <div class="option-check">✓</div>
+              <div><div class="option-label">Shots & Attempts</div><div class="option-desc">Powerful shots on and off target</div></div>
+            </div>
+            <div class="option-card selected" data-option="saves">
+              <div class="option-check">✓</div>
+              <div><div class="option-label">Saves & Blocks</div><div class="option-desc">Spectacular defensive moments</div></div>
+            </div>
+            <div class="option-card" data-option="skill">
+              <div class="option-check"></div>
+              <div><div class="option-label">Skill Moves</div><div class="option-desc">Dribbles, flicks & flair</div></div>
+            </div>
+            <div class="option-card" data-option="physical">
+              <div class="option-check"></div>
+              <div><div class="option-label">Physical Plays</div><div class="option-desc">Tackles, headers & duels</div></div>
+            </div>
+          </div>
+
+          <div class="sport-select-row">
+            <div class="form-field">
+              <label>Sport</label>
+              <select class="select-input" id="sport-select">
+                <option value="soccer">Soccer / Football</option>
+                <option value="basketball">Basketball</option>
+                <option value="hockey">Ice Hockey</option>
+                <option value="lacrosse">Lacrosse</option>
+                <option value="rugby">Rugby</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Your Position</label>
+              <select class="select-input" id="position-select">
+                <option value="">Any position</option>
+                <option value="forward">Forward / Striker</option>
+                <option value="mid">Midfielder</option>
+                <option value="defender">Defender</option>
+                <option value="keeper">Goalkeeper / Keeper</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="analyze-cta">
+          <button class="btn btn-primary" id="analyze-btn" style="padding:1rem 3rem; font-size:1rem;" disabled>
+            ✦ Analyze & Generate Reel
+          </button>
+          <p style="margin-top:0.75rem; font-size:0.8rem; color:var(--text-muted);">
+            Analysis typically takes 30–90 seconds depending on video length.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESULTS PAGE ── -->
+    <div id="view-results" class="hidden">
+      <div class="results-wrapper">
+        <div class="results-header">
+          <div>
+            <div class="results-title">🎬 Your Highlight Reel</div>
+            <div class="results-sub" id="results-sub">AI found your best moments</div>
+          </div>
+          <div class="results-actions">
+            <button class="btn btn-outline" onclick="showPage('create')">← New Reel</button>
+            <button class="btn btn-primary" id="export-btn">↓ Export Reel</button>
+          </div>
+        </div>
+
+        <div class="video-player-container">
+          <div class="video-overlay-badge">AI HIGHLIGHT REEL</div>
+          <video id="result-video" controls playsinline></video>
+        </div>
+
+        <div class="highlights-section">
+          <div class="section-title">Detected Highlights <span id="hl-count-badge" style="color:var(--pink);font-size:0.9em;margin-left:0.5rem;"></span></div>
+          <div class="highlights-list" id="highlights-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════ LOADING ══════════ -->
+<div id="page-loading" class="hidden">
+  <div class="loading-inner">
+    <div class="loading-orb">
+      <div class="orb-ring orb-ring-1"></div>
+      <div class="orb-ring orb-ring-2"></div>
+      <div class="orb-ring orb-ring-3"></div>
+      <div class="orb-center">✦</div>
+    </div>
+    <div class="loading-title">Analyzing Footage</div>
+    <div class="loading-phase" id="loading-phase">Initializing AI engine…</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loading-bar"></div>
+    </div>
+    <div class="loading-pct" id="loading-pct">0%</div>
+    <div class="loading-log" id="loading-log"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let state = {
+  screen: 'signin',     // signin | onboarding | app
+  appView: 'dashboard', // dashboard | create | results
+  currentSlide: 1,
+  totalSlides: 4,
+  userName: '',
+  reels: [],
+  uploadedFile: null,
+  uploadedVideo: null,
+  selectedOptions: new Set(['goals','assists','shots','saves']),
+};
+
+// ════════════════════════════════════════
+//  PARTICLE SYSTEM
+// ════════════════════════════════════════
+(function initParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  const W = () => canvas.width = window.innerWidth;
+  const H = () => canvas.height = window.innerHeight;
+  W(); H();
+  window.addEventListener('resize', () => { W(); H(); });
+
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -Math.random() * 0.5 - 0.1,
+      size: Math.random() * 1.5 + 0.3,
+      alpha: Math.random() * 0.4 + 0.1,
+      color: Math.random() > 0.5 ? '255,32,112' : '139,48,255',
+    });
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -5) { p.y = canvas.height + 5; p.x = Math.random() * canvas.width; }
+      if (p.x < -5) p.x = canvas.width + 5;
+      if (p.x > canvas.width + 5) p.x = -5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+// ════════════════════════════════════════
+//  SIGN IN
+// ════════════════════════════════════════
+document.getElementById('signin-btn').addEventListener('click', () => {
+  const email = document.getElementById('signin-email').value.trim();
+  const pass = document.getElementById('signin-password').value;
+  if (!email || !pass) { shakeElement(document.querySelector('.signin-card')); return; }
+  transitionToOnboarding();
+});
+
+document.getElementById('google-btn').addEventListener('click', transitionToOnboarding);
+
+document.getElementById('signin-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('signin-btn').click();
+});
+
+function shakeElement(el) {
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'shake 0.4s ease';
+  setTimeout(() => el.style.animation = '', 400);
+}
+
+// Inject shake keyframe
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }`;
+document.head.appendChild(shakeStyle);
+
+function transitionToOnboarding() {
+  document.getElementById('page-signin').style.opacity = '0';
+  document.getElementById('page-signin').style.transition = 'opacity 0.4s';
+  setTimeout(() => {
+    document.getElementById('page-signin').classList.add('hidden');
+    document.getElementById('page-onboarding').classList.remove('hidden');
+    initScanDots();
+    animateSlide2Cards();
+  }, 400);
+}
+
+// ════════════════════════════════════════
+//  ONBOARDING
+// ════════════════════════════════════════
+function initScanDots() {
+  const container = document.getElementById('scan-dots');
+  for (let i = 0; i < 8; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'scan-dot';
+    dot.style.left = Math.random() * 90 + 5 + '%';
+    dot.style.top = Math.random() * 80 + 10 + '%';
+    dot.style.animationDelay = Math.random() * 1 + 's';
+    container.appendChild(dot);
+  }
+}
+
+function animateSlide2Cards() {
+  const cards = document.querySelectorAll('#hl-visual .hl-card');
+  cards.forEach((c, i) => {
+    c.style.animationDelay = (i * 0.2 + 0.2) + 's';
+    c.classList.add('animate');
+  });
+}
+
+document.getElementById('slide-next-btn').addEventListener('click', advanceSlide);
+document.getElementById('slide-back-btn').addEventListener('click', retreatSlide);
+
+document.getElementById('user-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('slide-next-btn').click();
+});
+
+function advanceSlide() {
+  if (state.currentSlide === 4) {
+    const name = document.getElementById('user-name-input').value.trim();
+    if (!name) { document.getElementById('user-name-input').focus(); shakeElement(document.getElementById('user-name-input')); return; }
+    state.userName = name;
+    launchApp();
+    return;
+  }
+  goToSlide(state.currentSlide + 1);
+}
+
+function retreatSlide() {
+  if (state.currentSlide > 1) goToSlide(state.currentSlide - 1);
+}
+
+function goToSlide(n) {
+  const current = document.getElementById('slide-' + state.currentSlide);
+  current.classList.add('exiting');
+  setTimeout(() => {
+    current.classList.remove('active', 'exiting');
+    state.currentSlide = n;
+    const next = document.getElementById('slide-' + n);
+    next.classList.add('active');
+    if (n === 2) animateSlide2Cards();
+    if (n === 4) setTimeout(() => document.getElementById('user-name-input').focus(), 300);
+    updateSlideControls();
+  }, 280);
+}
+
+function updateSlideControls() {
+  const backBtn = document.getElementById('slide-back-btn');
+  const nextBtn = document.getElementById('slide-next-btn');
+  backBtn.style.display = state.currentSlide > 1 ? '' : 'none';
+  nextBtn.textContent = state.currentSlide === 4 ? 'Let\'s Go →' : 'Continue →';
+  const dots = document.querySelectorAll('.progress-dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === state.currentSlide - 1));
+}
+
+// ════════════════════════════════════════
+//  LAUNCH APP
+// ════════════════════════════════════════
+function launchApp() {
+  document.getElementById('page-onboarding').style.opacity = '0';
+  document.getElementById('page-onboarding').style.transition = 'opacity 0.5s';
+  setTimeout(() => {
+    document.getElementById('page-onboarding').classList.add('hidden');
+    document.getElementById('app-shell').classList.remove('hidden');
+    initDashboard();
+  }, 500);
+}
+
+function initDashboard() {
+  const name = state.userName;
+  const initial = name.charAt(0).toUpperCase();
+  document.getElementById('user-avatar').textContent = initial;
+  document.getElementById('sidebar-username').textContent = name;
+
+  const hour = new Date().getHours();
+  let greeting;
+  if (hour < 12) greeting = 'Good morning';
+  else if (hour < 17) greeting = 'What\'s up';
+  else greeting = 'Good evening';
+
+  document.getElementById('dashboard-greeting').innerHTML = `${greeting}, <span class="glow-text">${name}</span> 👋`;
+
+  const now = new Date();
+  document.getElementById('dashboard-date').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  updateStats();
+}
+
+function updateStats() {
+  let totalHL = 0, totalGoals = 0, totalMin = 0;
+  state.reels.forEach(r => {
+    totalHL += r.highlights.length;
+    totalGoals += r.highlights.filter(h => h.type === 'GOAL').length;
+    totalMin += r.duration || 0;
+  });
+  animateNumber('stat-reels', state.reels.length);
+  animateNumber('stat-highlights', totalHL);
+  animateNumber('stat-goals', totalGoals);
+  animateNumber('stat-minutes', Math.round(totalMin / 60));
+  renderReelsGrid();
+}
+
+function animateNumber(id, target) {
+  const el = document.getElementById(id);
+  const start = parseInt(el.textContent) || 0;
+  if (start === target) return;
+  const duration = 600;
+  const startTime = performance.now();
+  function tick(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    el.textContent = Math.round(start + (target - start) * easeOut(t));
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+function renderReelsGrid() {
+  const empty = document.getElementById('reels-empty');
+  const grid = document.getElementById('reels-grid');
+  if (state.reels.length === 0) {
+    empty.classList.remove('hidden'); grid.classList.add('hidden'); return;
+  }
+  empty.classList.add('hidden'); grid.classList.remove('hidden');
+  grid.innerHTML = '';
+  state.reels.forEach((reel, idx) => {
+    const card = document.createElement('div');
+    card.className = 'reel-card fade-in-up';
+    card.style.animationDelay = (idx * 0.05) + 's';
+    const goalCount = reel.highlights.filter(h => h.type === 'GOAL').length;
+    const date = new Date(reel.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    card.innerHTML = `
+      <div class="reel-thumb">
+        <span class="reel-thumb-icon">🎬</span>
+        <span class="reel-thumb-badge">${reel.highlights.length} Highlights</span>
+        <div class="reel-thumb-play">▶</div>
+      </div>
+      <div class="reel-info">
+        <div class="reel-name">${escHtml(reel.filename)}</div>
+        <div class="reel-meta">
+          <span>⚽ ${goalCount} goals</span>
+          <span>📅 ${date}</span>
+          <span>⏱ ${formatDuration(reel.duration)}</span>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => viewReel(idx));
+    grid.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════
+//  PAGE NAVIGATION
+// ════════════════════════════════════════
+function showPage(page) {
+  state.appView = page;
+  document.getElementById('view-dashboard').classList.toggle('hidden', page !== 'dashboard');
+  document.getElementById('view-create').classList.toggle('hidden', page !== 'create');
+  document.getElementById('view-results').classList.toggle('hidden', page !== 'results');
+
+  document.getElementById('nav-dashboard').classList.toggle('active', page === 'dashboard');
+  document.getElementById('nav-create').classList.toggle('active', page === 'create');
+
+  if (page === 'dashboard') updateStats();
+}
+
+// ════════════════════════════════════════
+//  UPLOAD
+// ════════════════════════════════════════
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('video-upload');
+const analyzeBtn = document.getElementById('analyze-btn');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('video/')) handleFile(file);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+document.getElementById('remove-file').addEventListener('click', e => {
+  e.stopPropagation(); clearFile();
+});
+
+function handleFile(file) {
+  state.uploadedFile = file;
+  state.uploadedVideo = URL.createObjectURL(file);
+  uploadZone.classList.add('has-file');
+  document.getElementById('file-preview').classList.remove('hidden');
+  document.getElementById('preview-filename').textContent = file.name;
+  document.getElementById('preview-filesize').textContent = formatBytes(file.size);
+  analyzeBtn.disabled = false;
+}
+
+function clearFile() {
+  state.uploadedFile = null; state.uploadedVideo = null;
+  fileInput.value = '';
+  uploadZone.classList.remove('has-file');
+  document.getElementById('file-preview').classList.add('hidden');
+  analyzeBtn.disabled = true;
+}
+
+// Option toggles
+document.querySelectorAll('.option-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const opt = card.dataset.option;
+    card.classList.toggle('selected');
+    if (card.classList.contains('selected')) {
+      state.selectedOptions.add(opt);
+      card.querySelector('.option-check').textContent = '✓';
+    } else {
+      state.selectedOptions.delete(opt);
+      card.querySelector('.option-check').textContent = '';
+    }
+  });
+});
+
+// ════════════════════════════════════════
+//  ANALYZE
+// ════════════════════════════════════════
+analyzeBtn.addEventListener('click', startAnalysis);
+
+const PHASES = [
+  { label: 'Initializing AI engine…', pct: 5 },
+  { label: 'Decoding video frames…', pct: 15 },
+  { label: 'Running object detection…', pct: 30 },
+  { label: 'Tracking player movement…', pct: 45 },
+  { label: 'Analyzing ball trajectory…', pct: 60 },
+  { label: 'Classifying action moments…', pct: 72 },
+  { label: 'Scoring highlight confidence…', pct: 82 },
+  { label: 'Extracting key clips…', pct: 91 },
+  { label: 'Compositing final reel…', pct: 97 },
+  { label: 'Done.', pct: 100 },
+];
+
+const LOG_ENTRIES = [
+  ['info','APEX','Loading YOLOv9 pose estimation model…'],
+  ['ok','MODEL','Weights loaded — cuda:0 device active'],
+  ['info','DECODE','Reading video codec: H.264 @ 30fps'],
+  ['info','TRACK','Initialising ByteTracker multi-object tracker'],
+  ['ok','TRACK','Detected 22 player instances across frames'],
+  ['info','ACTION','Running action classification: ResNet-50 backbone'],
+  ['warn','SCAN','Motion blur detected — applying frame interpolation'],
+  ['ok','BLUR','Sharpness restored at 3 frame segments'],
+  ['info','BALL','Ball trajectory model: 97.2% tracking accuracy'],
+  ['ok','GOAL','Net-crossing event detected × {g}'],
+  ['ok','ASSIST','Key pass sequences identified × {a}'],
+  ['ok','SHOT','Shot attempts classified × {s}'],
+  ['info','REEL','Sorting highlights by confidence score'],
+  ['ok','REEL','Generating output manifest'],
+  ['ok','APEX','Analysis complete ✓'],
+];
+
+function startAnalysis() {
+  document.getElementById('page-loading').classList.remove('hidden');
+  document.getElementById('app-shell').style.opacity = '0.3';
+  document.getElementById('app-shell').style.pointerEvents = 'none';
+
+  const log = document.getElementById('loading-log');
+  log.innerHTML = '';
+  let phaseIdx = 0;
+  let logIdx = 0;
+  let pct = 0;
+  const bar = document.getElementById('loading-bar');
+  const pctEl = document.getElementById('loading-pct');
+  const phaseEl = document.getElementById('loading-phase');
+
+  const hlData = generateHighlights();
+
+  function setPhase(p) {
+    phaseEl.style.opacity = '0';
+    setTimeout(() => { phaseEl.textContent = p; phaseEl.style.opacity = '1'; }, 150);
+  }
+  function setPct(v) {
+    pct = v; bar.style.width = v + '%'; pctEl.textContent = v + '%';
+  }
+  function addLog(entry) {
+    const [type, tag, msg] = entry;
+    const filled = msg
+      .replace('{g}', hlData.filter(h=>h.type==='GOAL').length)
+      .replace('{a}', hlData.filter(h=>h.type==='ASSIST').length)
+      .replace('{s}', hlData.filter(h=>h.type==='SHOT').length);
+    const line = document.createElement('div');
+    line.className = `log-line ${type}`;
+    line.innerHTML = `<span class="log-status">[${type.toUpperCase()}]</span><span style="color:var(--purple2);min-width:60px">${tag}</span><span>${escHtml(filled)}</span>`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  const phaseTimer = setInterval(() => {
+    if (phaseIdx >= PHASES.length) { clearInterval(phaseTimer); return; }
+    const ph = PHASES[phaseIdx++];
+    setPhase(ph.label); setPct(ph.pct);
+  }, 850);
+
+  const logTimer = setInterval(() => {
+    if (logIdx >= LOG_ENTRIES.length) { clearInterval(logTimer); return; }
+    addLog(LOG_ENTRIES[logIdx++]);
+  }, 700);
+
+  // Final — show results
+  setTimeout(() => {
+    clearInterval(phaseTimer); clearInterval(logTimer);
+    setPct(100); setPhase('Analysis complete.');
+    setTimeout(() => showResults(hlData), 700);
+  }, PHASES.length * 850 + 300);
+}
+
+// ════════════════════════════════════════
+//  HIGHLIGHT GENERATION (SIMULATED)
+// ════════════════════════════════════════
+const HIGHLIGHT_TEMPLATES = [
+  { type: 'GOAL', descs: ['Clinical finish low to the left', 'Powerful header from a corner', 'Chip shot over the keeper', 'Half-volley smashed into the net', 'Cool one-on-one finish'] },
+  { type: 'ASSIST', descs: ['Perfect through-ball splitting the defence', 'Inch-perfect cross from the right', 'Lobbed ball over the last man', 'No-look flick to release striker', 'Vision pass from deep midfield'] },
+  { type: 'SHOT', descs: ['Long-range strike forces a save', 'Left-foot curler just wide', 'Driven shot tipped over the bar', 'Bicycle kick attempt', 'First-time volley from outside the box'] },
+  { type: 'SAVE', descs: ['Diving stop to deny a certain goal', 'One-on-one block with feet', 'Instinctive reflex save', 'Punch clear from a cross'] },
+  { type: 'SKILL', descs: ['Roulette to beat two defenders', 'Elastico through a tight gap', 'Shoulder drop and burst of pace', 'Nutmeg in the midfield', 'Rainbow flick over a challenge'] },
+];
+
+function generateHighlights() {
+  const highlights = [];
+  const selected = [...state.selectedOptions];
+  const typeMap = { goals: 'GOAL', assists: 'ASSIST', shots: 'SHOT', saves: 'SAVE', skill: 'SKILL', physical: 'SKILL' };
+  const activeTpls = HIGHLIGHT_TEMPLATES.filter(t => {
+    return selected.some(s => typeMap[s] === t.type);
+  });
+  if (activeTpls.length === 0) activeTpls.push(...HIGHLIGHT_TEMPLATES.slice(0,3));
+
+  let timestamps = [];
+  const total = Math.floor(Math.random() * 6) + 6; // 6-11 highlights
+  for (let i = 0; i < total; i++) {
+    timestamps.push(Math.floor(Math.random() * 5400 + 30)); // 0:30 – 90:00
+  }
+  timestamps.sort((a,b) => a - b);
+
+  timestamps.forEach(ts => {
+    const tpl = activeTpls[Math.floor(Math.random() * activeTpls.length)];
+    const desc = tpl.descs[Math.floor(Math.random() * tpl.descs.length)];
+    const conf = Math.floor(Math.random() * 20 + 78); // 78–97%
+    highlights.push({ time: ts, type: tpl.type, desc, confidence: conf });
+  });
+  return highlights;
+}
+
+// ════════════════════════════════════════
+//  RESULTS
+// ════════════════════════════════════════
+function showResults(highlights) {
+  document.getElementById('page-loading').classList.add('hidden');
+  document.getElementById('app-shell').style.opacity = '';
+  document.getElementById('app-shell').style.pointerEvents = '';
+
+  // Save reel
+  const reel = {
+    filename: state.uploadedFile ? state.uploadedFile.name : 'game_footage.mp4',
+    videoUrl: state.uploadedVideo,
+    highlights,
+    created: Date.now(),
+    duration: state.uploadedFile ? 0 : 5400,
+  };
+  state.reels.push(reel);
+
+  // Get video duration
+  if (state.uploadedVideo) {
+    const tmp = document.createElement('video');
+    tmp.src = state.uploadedVideo;
+    tmp.onloadedmetadata = () => { reel.duration = tmp.duration; };
+  }
+
+  renderResults(state.reels.length - 1);
+  showPage('results');
+}
+
+function renderResults(reelIdx) {
+  const reel = state.reels[reelIdx];
+  const video = document.getElementById('result-video');
+  video.src = reel.videoUrl || '';
+
+  const goalCount = reel.highlights.filter(h => h.type === 'GOAL').length;
+  document.getElementById('results-sub').textContent =
+    `${reel.highlights.length} highlights found — including ${goalCount} goal${goalCount !== 1 ? 's' : ''}`;
+
+  document.getElementById('hl-count-badge').textContent = `(${reel.highlights.length})`;
+
+  const list = document.getElementById('highlights-list');
+  list.innerHTML = '';
+  reel.highlights.forEach((hl, i) => {
+    const item = document.createElement('div');
+    item.className = 'highlight-item fade-in-up';
+    item.style.animationDelay = (i * 0.04) + 's';
+    const confWidth = hl.confidence + '%';
+    item.innerHTML = `
+      <span class="hl-time">${formatTime(hl.time)}</span>
+      <span class="hl-type-badge ${hl.type}">${hl.type}</span>
+      <span class="hl-desc">${escHtml(hl.desc)}</span>
+      <span class="hl-conf">
+        <div class="hl-conf-bar"><div class="hl-conf-fill" style="width:${confWidth}"></div></div>
+        ${hl.confidence}%
+      </span>
+      <div class="hl-play-btn">▶</div>`;
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.highlight-item').forEach(el => el.classList.remove('playing'));
+      item.classList.add('playing');
+      if (video.src && reel.videoUrl) {
+        video.currentTime = hl.time;
+        video.play();
+      }
+    });
+    list.appendChild(item);
+  });
+}
+
+function viewReel(idx) {
+  renderResults(idx);
+  showPage('results');
+}
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  alert('In a full production build, this would render and download your highlight reel as an MP4 file. 🎬');
+});
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = String(Math.floor(seconds % 60)).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function formatDuration(sec) {
+  if (!sec) return '–';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}m ${s}s`;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

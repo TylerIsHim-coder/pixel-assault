@@ -3,497 +3,509 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrowthOS — Maximize Your Potential</title>
+<title>GrowthOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#030308;--bg2:#07080f;--bg3:#0c0e1a;
-  --cyan:#00d4ff;--purple:#8b5cf6;--green:#10b981;--orange:#f59e0b;
-  --text:#e2e8f0;--muted:#64748b;--border:rgba(0,212,255,0.15);
-  --card:rgba(255,255,255,0.04);--card-hover:rgba(255,255,255,0.07);
-  --glow:0 0 20px rgba(0,212,255,0.3);
+  --bg:#000;
+  --card:#0d0d0d;
+  --card2:#111;
+  --card-hover:#161616;
+  --border:#1e1e1e;
+  --border2:#2a2a2a;
+  --text:#fff;
+  --text2:#888;
+  --text3:#444;
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,0.12);
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
-canvas#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
 
-/* ── ONBOARDING ─────────────────────────────────────────── */
-#onboarding{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
-.ob-progress{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08)}
-.ob-progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .5s ease}
-.ob-slides{width:100%;max-width:520px;position:relative;overflow:hidden}
-.ob-slide{min-width:100%;padding:0 24px;opacity:0;transform:translateX(60px);transition:all .5s cubic-bezier(.4,0,.2,1);position:absolute;top:0;left:0;pointer-events:none}
+/* ── ONBOARDING ───────────────────────────────────────── */
+#onboarding{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ob-progress{position:absolute;top:0;left:0;right:0;height:2px;background:#1a1a1a}
+.ob-progress-fill{height:100%;background:#fff;transition:width .45s ease}
+.ob-slides{width:100%;max-width:440px;position:relative;overflow:hidden;padding:0 28px}
+.ob-slide{min-width:100%;opacity:0;transform:translateX(40px);transition:opacity .4s ease,transform .4s ease;position:absolute;top:0;left:0;pointer-events:none}
 .ob-slide.active{opacity:1;transform:translateX(0);position:relative;pointer-events:all}
-.ob-slide.leaving{opacity:0;transform:translateX(-60px);position:absolute}
-.ob-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:42px;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;margin-bottom:12px}
-.ob-tagline{color:var(--muted);font-size:15px;letter-spacing:2px;text-transform:uppercase;margin-bottom:40px}
-.ob-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text)}
-.ob-sub{color:var(--muted);font-size:14px;margin-bottom:32px;line-height:1.6}
-.ob-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;padding:14px 18px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
-.ob-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
-.ob-input::placeholder{color:var(--muted)}
-.ob-row{display:flex;gap:12px}
-.ob-select{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;padding:14px 18px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;cursor:pointer;appearance:none;transition:border-color .2s}
-.ob-select:focus{border-color:var(--cyan)}
-.ob-select option{background:#0c0e1a;color:var(--text)}
-.ob-options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
-.ob-option{flex:1;min-width:120px;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;text-align:center;font-size:14px;transition:all .2s}
-.ob-option:hover{border-color:var(--cyan);color:var(--text)}
-.ob-option.selected{border-color:var(--cyan);background:rgba(0,212,255,0.12);color:var(--cyan)}
-.ob-btn{width:100%;margin-top:24px;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;font-family:'Orbitron',monospace;font-weight:700;font-size:15px;letter-spacing:2px;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(0,212,255,0.3)}
-.ob-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,0.4)}
-.ob-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.ob-dots{display:flex;gap:8px;margin-top:28px;justify-content:center}
-.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .3s}
-.ob-dot.active{width:24px;border-radius:3px;background:var(--cyan)}
-.ob-loading{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 0}
-.ob-spinner{width:60px;height:60px;border:3px solid rgba(0,212,255,0.1);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite}
-.ob-load-text{font-family:'Orbitron',monospace;font-size:13px;color:var(--cyan);letter-spacing:3px;animation:pulse 1.5s ease-in-out infinite}
-.ob-steps{list-style:none;text-align:left;margin-top:16px}
-.ob-steps li{padding:6px 0;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px}
-.ob-steps li.done{color:var(--green)}
-.ob-steps li::before{content:'○';color:var(--border)}
-.ob-steps li.done::before{content:'✓';color:var(--green)}
-.ob-steps li.active::before{content:'◉';color:var(--cyan);animation:pulse 1s ease-in-out infinite}
-.float-particle{position:absolute;border-radius:50%;pointer-events:none;animation:float-up linear infinite}
+.ob-slide.leaving{opacity:0;transform:translateX(-40px);position:absolute}
+.ob-logo{font-size:36px;font-weight:900;letter-spacing:-1.5px;color:#fff;margin-bottom:8px}
+.ob-logo span{color:var(--text2)}
+.ob-tagline{color:var(--text3);font-size:13px;font-weight:500;letter-spacing:.5px;margin-bottom:40px}
+.ob-eyebrow{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.ob-title{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:#fff;margin-bottom:6px;line-height:1.2}
+.ob-sub{color:var(--text2);font-size:14px;margin-bottom:28px;line-height:1.6}
+.ob-input{width:100%;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;color:#fff;font-size:16px;font-family:'Inter',sans-serif;font-weight:500;outline:none;transition:border-color .15s;margin-bottom:10px}
+.ob-input:focus{border-color:#fff}
+.ob-input::placeholder{color:var(--text3)}
+.ob-row{display:flex;gap:10px}
+.ob-options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.ob-option{flex:1;min-width:110px;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;text-align:center;font-size:14px;font-weight:500;transition:all .15s;font-family:'Inter',sans-serif}
+.ob-option:hover{border-color:#555;color:#fff}
+.ob-option.selected{border-color:#fff;background:#fff;color:#000;font-weight:600}
+.ob-btn{width:100%;margin-top:20px;padding:15px;border-radius:10px;border:none;background:#fff;color:#000;font-family:'Inter',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:opacity .15s}
+.ob-btn:hover{opacity:.88}
+.ob-btn:disabled{opacity:.25;cursor:not-allowed}
+.ob-dots{display:flex;gap:6px;margin-top:28px;justify-content:center}
+.ob-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);transition:all .25s}
+.ob-dot.active{width:20px;border-radius:2.5px;background:#fff}
+.ob-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 0}
+.ob-spinner{width:48px;height:48px;border:2px solid #1a1a1a;border-top-color:#fff;border-radius:50%;animation:spin .9s linear infinite}
+.ob-load-text{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase}
+.ob-steps{list-style:none;text-align:left;margin-top:12px;min-width:260px}
+.ob-steps li{padding:7px 0;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #111;transition:color .2s}
+.ob-steps li:last-child{border-bottom:none}
+.ob-steps li.done{color:var(--text2)}
+.ob-steps li.done::before{content:'✓';color:var(--green);font-size:12px;width:16px;text-align:center}
+.ob-steps li::before{content:'○';color:var(--text3);font-size:12px;width:16px;text-align:center}
+.ob-steps li.active{color:#fff}
+.ob-steps li.active::before{content:'●';color:#fff;animation:pulse .8s ease-in-out infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
-@keyframes float-up{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-100vh) scale(1.5)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 
-/* ── APP SHELL ──────────────────────────────────────────── */
-#app{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;display:none}
-.app-topbar{height:60px;background:rgba(3,3,8,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
-.app-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
-.topbar-points{display:flex;align-items:center;gap:8px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:6px 14px}
-.topbar-points-icon{font-size:14px}
-.topbar-points-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--purple)}
-.topbar-points-label{font-size:11px;color:var(--muted)}
+/* ── APP SHELL ────────────────────────────────────────── */
+#app{position:fixed;inset:0;z-index:10;display:none;flex-direction:column}
+.app-topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.app-logo{font-size:17px;font-weight:900;letter-spacing:-0.5px;color:#fff}
+.app-logo span{color:var(--text3)}
+.topbar-pts{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px}
+.topbar-pts-val{font-size:13px;font-weight:700;color:#fff}
+.topbar-pts-label{font-size:11px;color:var(--text3);font-weight:500}
 .app-screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;padding:20px 16px 90px;display:none}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:20px 18px 84px;display:none}
 .screen.active{display:block}
-.screen::-webkit-scrollbar{width:4px}
-.screen::-webkit-scrollbar-track{background:transparent}
-.screen::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.2);border-radius:2px}
-.app-bottomnav{height:72px;background:rgba(3,3,8,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 20px;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .2s;border-radius:12px}
-.nav-btn.active{color:var(--cyan)}
+.screen::-webkit-scrollbar{width:3px}
+.screen::-webkit-scrollbar-thumb{background:#1a1a1a;border-radius:2px}
+.app-bottomnav{height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 24px;cursor:pointer;border:none;background:none;color:var(--text3);transition:color .15s}
+.nav-btn.active{color:#fff}
 .nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.nav-btn span{font-size:10px;font-family:'Orbitron',monospace;letter-spacing:1px}
-.nav-indicator{position:absolute;bottom:0;width:32px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:1px;transition:left .3s ease}
+.nav-btn span{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
 
-/* ── GLASS CARD ─────────────────────────────────────────── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
-.card-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
-.section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:20px 0 10px}
+/* ── SHARED COMPONENTS ────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.section-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:22px 0 10px}
+.divider{height:1px;background:var(--border);margin:12px 0}
 
-/* ── HOME SCREEN ────────────────────────────────────────── */
+/* ── HOME SCREEN ──────────────────────────────────────── */
 .welcome-msg{margin-bottom:20px}
-.welcome-msg h1{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text)}
-.welcome-msg h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.welcome-msg p{color:var(--muted);font-size:14px;margin-top:4px}
-.growth-hero{display:flex;gap:16px;align-items:stretch;margin-bottom:20px}
-.body-wrap{display:flex;align-items:flex-end;gap:0;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;flex:1;justify-content:center;position:relative;overflow:hidden}
-.body-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(0,212,255,0.06) 0%,transparent 70%)}
-#body-svg{position:relative;z-index:1}
-.ruler-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 4px;width:44px;background:var(--card);border:1px solid var(--border);border-radius:16px}
-.ruler-title{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--muted);writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);margin-bottom:8px}
-#ruler-svg{flex:1}
-.points-panel{display:flex;flex-direction:column;gap:10px;width:130px}
-.pts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-.pts-card .pts-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-.pts-card .pts-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px}
-.pts-progress-wrap{margin-top:10px}
-.pts-bar-bg{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden}
-.pts-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:3px;transition:width .6s ease}
-.pts-bar-label{display:flex;justify-content:space-between;margin-top:4px}
-.pts-bar-label span{font-size:10px;color:var(--muted)}
-.height-card{background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(139,92,246,0.12));border:1px solid rgba(0,212,255,0.25);border-radius:14px;padding:14px;text-align:center}
-.height-card .h-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--cyan);line-height:1}
-.height-card .h-label{font-size:10px;color:var(--muted);margin-top:4px}
-.streak-card{background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(239,68,68,0.08));border:1px solid rgba(245,158,11,0.25);border-radius:14px;padding:14px;text-align:center}
-.streak-card .s-val{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:var(--orange);line-height:1}
-.streak-card .s-label{font-size:10px;color:var(--muted);margin-top:4px}
-.today-progress{margin-bottom:20px}
-.today-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.today-header h3{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--text)}
-.today-header span{font-size:12px;color:var(--muted)}
-.today-bar-bg{height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
-.today-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:4px;transition:width .6s ease}
-.quick-tasks{margin-bottom:4px}
-.quick-task-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid transparent;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .2s}
-.quick-task-item:hover{border-color:var(--border);background:var(--card-hover)}
-.quick-task-item.checked{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.06)}
-.task-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.quick-task-item.checked .task-check{background:var(--green);border-color:var(--green)}
-.task-check-mark{color:#fff;font-size:12px;opacity:0;transition:opacity .2s}
-.quick-task-item.checked .task-check-mark{opacity:1}
-.task-text{font-size:14px;flex:1;transition:color .2s}
-.quick-task-item.checked .task-text{color:var(--muted);text-decoration:line-through}
-.task-pts{font-size:11px;color:var(--muted);font-family:'Orbitron',monospace}
-.task-category{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
-.cat-nutrition{background:rgba(16,185,129,0.15);color:var(--green)}
-.cat-supplement{background:rgba(139,92,246,0.15);color:var(--purple)}
-.cat-stretch{background:rgba(0,212,255,0.15);color:var(--cyan)}
-.cat-habit{background:rgba(245,158,11,0.15);color:var(--orange)}
-.grow-toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;font-family:'Orbitron',monospace;font-size:13px;letter-spacing:2px;padding:12px 24px;border-radius:100px;box-shadow:0 8px 32px rgba(0,212,255,0.4);opacity:0;transition:all .4s;z-index:999;pointer-events:none}
+.welcome-msg h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;color:#fff;line-height:1.2}
+.welcome-msg p{color:var(--text2);font-size:14px;margin-top:4px;font-weight:400}
+
+.growth-hero{display:flex;gap:12px;margin-bottom:20px;align-items:stretch}
+.body-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;flex:1;display:flex;justify-content:center;align-items:center}
+.ruler-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 6px;width:46px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ruler-label{font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);writing-mode:vertical-rl;transform:rotate(180deg)}
+
+.stats-col{display:flex;flex-direction:column;gap:10px;width:118px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-1px;color:#fff;line-height:1}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-top:4px}
+.stat-card.accent .stat-val{color:var(--green)}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:2px}
+
+.pts-fill-wrap{margin-top:8px}
+.pts-track{height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden}
+.pts-fill{height:100%;background:#fff;border-radius:2px;transition:width .5s ease}
+.pts-track-labels{display:flex;justify-content:space-between;margin-top:4px}
+.pts-track-labels span{font-size:10px;color:var(--text3);font-weight:500}
+
+.today-progress-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px}
+.today-prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.today-prog-header h3{font-size:14px;font-weight:700;color:#fff}
+.today-prog-header span{font-size:13px;color:var(--text2);font-weight:500}
+.prog-track{height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:#fff;border-radius:3px;transition:width .5s ease}
+
+.home-task-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .15s}
+.home-task-item:hover{background:var(--card-hover)}
+.home-task-item.checked{background:var(--card)}
+.t-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.home-task-item.checked .t-check{background:var(--green);border-color:var(--green)}
+.t-checkmark{font-size:11px;color:#000;font-weight:700;opacity:0;transition:opacity .15s}
+.home-task-item.checked .t-checkmark{opacity:1}
+.t-name{font-size:13px;font-weight:500;flex:1;transition:color .15s}
+.home-task-item.checked .t-name{color:var(--text3);text-decoration:line-through}
+.t-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.badge-nutrition{background:#1a1a1a;color:var(--text2)}
+.badge-supplement{background:#1a1a1a;color:var(--text2)}
+.badge-stretch{background:#1a1a1a;color:var(--text2)}
+.badge-habit{background:#1a1a1a;color:var(--text2)}
+.home-task-item.checked .t-badge{opacity:.4}
+
+.grow-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#fff;color:#000;font-size:13px;font-weight:700;letter-spacing:.5px;padding:12px 22px;border-radius:100px;opacity:0;transition:all .35s;z-index:999;pointer-events:none;white-space:nowrap}
 .grow-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── CALENDAR SCREEN ────────────────────────────────────── */
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.cal-header h2{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text)}
-.cal-nav-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
-.cal-nav-btn:hover{border-color:var(--cyan);color:var(--cyan)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px}
-.cal-day-label{text-align:center;font-size:10px;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:1px;padding:6px 0}
-.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .2s;font-size:13px;font-weight:500;border:1px solid transparent}
-.cal-day:hover:not(.empty){background:var(--card-hover);border-color:var(--border)}
-.cal-day.today{background:rgba(0,212,255,0.12);border-color:var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-weight:700}
-.cal-day.selected{background:rgba(139,92,246,0.15);border-color:var(--purple)}
+/* ── CALENDAR SCREEN ─────────────────────────────────── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.cal-header h2{font-size:18px;font-weight:800;letter-spacing:-0.3px;color:#fff}
+.cal-nav{width:32px;height:32px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s;font-family:'Inter',sans-serif}
+.cal-nav:hover{border-color:#555;color:#fff}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:22px}
+.cal-day-label{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:6px 0;letter-spacing:.5px}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background .15s;font-size:13px;font-weight:500;color:var(--text2);border:1px solid transparent}
+.cal-day:hover:not(.empty){background:var(--card2)}
+.cal-day.today{background:#fff;color:#000;font-weight:700;border-color:transparent}
+.cal-day.selected:not(.today){border-color:var(--border2);color:#fff}
 .cal-day.completed{color:var(--green)}
-.cal-day .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--green);position:absolute;bottom:4px}
-.cal-day.partial .cal-dot{background:var(--orange)}
-.cal-day.empty{cursor:default;opacity:.2}
-.cal-task-section{margin-top:4px}
-.cal-task-date{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:12px}
-.task-group{margin-bottom:16px}
-.task-group-label{font-size:11px;font-weight:600;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--card);border:1px solid transparent;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .2s}
-.task-item:hover{border-color:var(--border)}
-.task-item.checked{border-color:rgba(16,185,129,0.25);background:rgba(16,185,129,0.05)}
-.task-item .task-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s}
-.task-item.checked .task-check{background:var(--green);border-color:var(--green)}
-.task-info{flex:1}
-.task-info .t-name{font-size:14px;font-weight:500;transition:color .2s}
-.task-item.checked .t-name{color:var(--muted);text-decoration:line-through}
-.task-info .t-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
-.task-pts-badge{font-family:'Orbitron',monospace;font-size:10px;color:var(--purple);background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.2);border-radius:6px;padding:2px 6px;flex-shrink:0;margin-top:2px}
+.cal-day.empty{cursor:default;opacity:0}
+.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--green);position:absolute;bottom:4px}
+.cal-day.partial .cal-dot{background:var(--text3)}
+.cal-day.today .cal-dot{background:#000}
 
-/* ── NUTRITION SCREEN ───────────────────────────────────── */
-.macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.cal-task-date{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text3);margin-bottom:14px;text-transform:uppercase}
+.task-group{margin-bottom:18px}
+.task-group-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.task-group-label .group-dot{width:6px;height:6px;border-radius:50%;background:#fff;flex-shrink:0}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .15s}
+.task-item:hover{background:var(--card-hover)}
+.task-item.checked{border-color:rgba(34,197,94,0.2);background:var(--green-dim)}
+.task-item .t-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.task-item.checked .t-check{background:var(--green);border-color:var(--green)}
+.task-item.checked .t-checkmark{opacity:1}
+.t-info{flex:1}
+.t-info .t-name{font-size:14px;font-weight:500;transition:color .15s}
+.task-item.checked .t-name{color:var(--text3);text-decoration:line-through}
+.t-info .t-detail{font-size:12px;color:var(--text3);margin-top:3px;line-height:1.5}
+.t-pts{font-size:10px;font-weight:700;color:var(--text3);background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;flex-shrink:0;margin-top:2px}
+.task-item.checked .t-pts{color:var(--green);border-color:rgba(34,197,94,0.25)}
+
+/* ── NUTRITION SCREEN ────────────────────────────────── */
+.macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
 .macro-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
-.macro-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;line-height:1}
-.macro-unit{font-size:11px;color:var(--muted);margin-top:2px}
-.macro-label{font-size:10px;color:var(--muted);margin-top:4px}
-.macro-card.calories .macro-val{color:var(--orange)}
-.macro-card.protein .macro-val{color:var(--cyan)}
-.macro-card.carbs .macro-val{color:var(--purple)}
-.macro-card.fat .macro-val{color:var(--green)}
-.meal-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
-.meal-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s}
-.meal-header:hover{background:var(--card-hover)}
-.meal-header-left{display:flex;align-items:center;gap:10px}
-.meal-icon{font-size:20px}
-.meal-name{font-weight:600;font-size:14px}
-.meal-macros{font-size:11px;color:var(--muted);margin-top:2px}
-.meal-chevron{color:var(--muted);transition:transform .2s;font-size:16px}
+.macro-num{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:#fff;line-height:1}
+.macro-unit{font-size:10px;color:var(--text3);margin-top:1px;font-weight:500}
+.macro-name{font-size:10px;color:var(--text2);margin-top:4px;font-weight:600;letter-spacing:.3px}
+.macro-card.m-protein .macro-num{color:#fff}
+.macro-card.m-cal .macro-num{color:var(--text2)}
+
+.water-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:8px}
+.water-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.water-head .w-title{font-size:14px;font-weight:700;color:#fff}
+.water-head .w-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.water-head .w-count{font-size:20px;font-weight:800;color:#fff}
+.water-cups{display:flex;gap:6px;flex-wrap:wrap}
+.w-cup{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;opacity:.3;background:transparent}
+.w-cup.filled{opacity:1;background:var(--card2);border-color:#333}
+
+.meal-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.meal-hdr{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
+.meal-hdr:hover{background:var(--card-hover)}
+.meal-hdr-left{display:flex;align-items:center;gap:10px}
+.meal-icon{font-size:22px}
+.meal-title{font-size:14px;font-weight:600;color:#fff}
+.meal-meta{font-size:11px;color:var(--text3);margin-top:2px;font-weight:500}
+.meal-chevron{font-size:13px;color:var(--text3);transition:transform .2s}
 .meal-card.open .meal-chevron{transform:rotate(180deg)}
 .meal-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
-.meal-card.open .meal-body{max-height:300px}
-.meal-items{padding:0 16px 14px}
-.meal-item-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,0.04);font-size:13px;color:var(--muted)}
-.meal-item-row::before{content:'•';color:var(--cyan);flex-shrink:0}
+.meal-card.open .meal-body{max-height:260px}
+.meal-items-wrap{padding:0 16px 14px;border-top:1px solid var(--border)}
+.meal-item{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+.meal-item:last-of-type{border-bottom:none}
+.meal-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.meal-macros-row{display:flex;gap:14px;padding-top:10px;margin-top:4px;border-top:1px solid var(--border)}
+.meal-macros-row span{font-size:11px;color:var(--text3);font-weight:600}
+.meal-macros-row b{color:var(--text2)}
+
 .supp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .supp-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start}
-.supp-icon{font-size:22px;flex-shrink:0}
-.supp-name{font-weight:600;font-size:13px;color:var(--text)}
-.supp-dose{font-size:11px;color:var(--cyan);margin-top:2px}
-.supp-note{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
-.water-tracker{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
-.water-cups{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.water-cup{width:36px;height:36px;border-radius:8px;border:2px solid rgba(0,212,255,0.2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;opacity:.4}
-.water-cup.filled{background:rgba(0,212,255,0.15);border-color:var(--cyan);opacity:1}
+.supp-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.supp-name{font-size:13px;font-weight:700;color:#fff}
+.supp-dose{font-size:11px;color:var(--text2);margin-top:2px;font-weight:600}
+.supp-note{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
 
-/* ── ANIMATIONS ─────────────────────────────────────────── */
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes glow-pulse{0%,100%{box-shadow:0 0 10px rgba(0,212,255,0.2)}50%{box-shadow:0 0 30px rgba(0,212,255,0.5)}}
-.animate-in{animation:slideUp .4s ease forwards}
-.inch-milestone{animation:glow-pulse 2s ease-in-out 3}
-@keyframes body-grow{0%{transform:scale(1)}30%{transform:scale(1.04)}60%{transform:scale(0.98)}100%{transform:scale(1)}}
-.body-growing{animation:body-grow .6s ease}
+.tips-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.tip-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+.tip-row:last-child{border-bottom:none}
+.tip-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);flex-shrink:0;margin-top:6px}
+.tip-text{font-size:13px;color:var(--text2);line-height:1.5}
+.tip-text b{color:#fff;font-weight:600}
 </style>
 </head>
 <body>
-<canvas id="stars"></canvas>
 
-<!-- ══════════════════ ONBOARDING ══════════════════ -->
+<!-- ══════════════ ONBOARDING ══════════════ -->
 <div id="onboarding">
   <div class="ob-progress"><div class="ob-progress-fill" id="ob-prog" style="width:0%"></div></div>
   <div class="ob-slides" id="ob-slides">
 
     <!-- Slide 0: Welcome -->
     <div class="ob-slide active" id="sl0">
-      <div style="text-align:center;padding:40px 0">
-        <div class="ob-logo">GROWTH<span style="-webkit-text-fill-color:var(--cyan)">OS</span></div>
-        <div class="ob-tagline">Engineered for your peak potential</div>
-        <div style="width:80px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple));margin:0 auto 32px;border-radius:1px"></div>
-        <p style="color:var(--muted);font-size:14px;line-height:1.8;max-width:380px;margin:0 auto 32px">
-          AI-powered daily plans built around your body — <span style="color:var(--cyan)">nutrition</span>, <span style="color:var(--purple)">stretches</span>, <span style="color:var(--orange)">habits</span>, and <span style="color:var(--green)">sleep</span> — personalized to maximize your growth.
-        </p>
-        <button class="ob-btn" onclick="nextSlide()">INITIALIZE →</button>
+      <div style="padding:32px 0 8px">
+        <div class="ob-logo">Growth<span>OS</span></div>
+        <div class="ob-tagline">Personalized daily plans to maximize your growth</div>
+        <div style="height:1px;background:#1a1a1a;margin:28px 0"></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;background:#111;border:1px solid #1e1e1e;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🥗</div>
+            <div><div style="font-size:14px;font-weight:600;color:#fff">Daily nutrition & meal plans</div><div style="font-size:12px;color:var(--text3);margin-top:1px">Built around your weight and age</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;background:#111;border:1px solid #1e1e1e;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤸</div>
+            <div><div style="font-size:14px;font-weight:600;color:#fff">Stretch & posture routines</div><div style="font-size:12px;color:var(--text3);margin-top:1px">Decompress your spine daily</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;background:#111;border:1px solid #1e1e1e;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💊</div>
+            <div><div style="font-size:14px;font-weight:600;color:#fff">Supplement stack</div><div style="font-size:12px;color:var(--text3);margin-top:1px">Calcium, D3, Zinc, Fish oil & more</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;background:#111;border:1px solid #1e1e1e;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚡</div>
+            <div><div style="font-size:14px;font-weight:600;color:#fff">Growth Points system</div><div style="font-size:12px;color:var(--text3);margin-top:1px">Complete tasks, fill your body, grow</div></div>
+          </div>
+        </div>
+        <button class="ob-btn" onclick="nextSlide()">Get Started →</button>
       </div>
     </div>
 
     <!-- Slide 1: Name -->
     <div class="ob-slide" id="sl1">
-      <div class="ob-title">What's your name?</div>
-      <div class="ob-sub">We'll personalize everything just for you.</div>
-      <input class="ob-input" id="inp-name" type="text" placeholder="Enter your first name" maxlength="20" oninput="validateSlide(1)">
-      <button class="ob-btn" id="btn1" onclick="nextSlide()" disabled>CONTINUE →</button>
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 1 of 6</div>
+        <div class="ob-title">What's your name?</div>
+        <div class="ob-sub">We'll personalize everything just for you.</div>
+        <input class="ob-input" id="inp-name" type="text" placeholder="First name" maxlength="20" oninput="validateSlide(1)">
+        <button class="ob-btn" id="btn1" onclick="nextSlide()" disabled>Continue</button>
+      </div>
     </div>
 
     <!-- Slide 2: Age -->
     <div class="ob-slide" id="sl2">
-      <div class="ob-title">How old are you?</div>
-      <div class="ob-sub">GrowthOS is optimized for teens ages 10–19.</div>
-      <input class="ob-input" id="inp-age" type="number" placeholder="Your age (10–19)" min="10" max="19" oninput="validateSlide(2)">
-      <button class="ob-btn" id="btn2" onclick="nextSlide()" disabled>CONTINUE →</button>
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 2 of 6</div>
+        <div class="ob-title">How old are you?</div>
+        <div class="ob-sub">GrowthOS is designed for teens ages 10–19.</div>
+        <input class="ob-input" id="inp-age" type="number" placeholder="Your age" min="10" max="19" oninput="validateSlide(2)">
+        <button class="ob-btn" id="btn2" onclick="nextSlide()" disabled>Continue</button>
+      </div>
     </div>
 
     <!-- Slide 3: Height -->
     <div class="ob-slide" id="sl3">
-      <div class="ob-title">What's your current height?</div>
-      <div class="ob-sub">This sets your starting point on the Growth Ruler.</div>
-      <div class="ob-row">
-        <div style="flex:1;position:relative">
-          <input class="ob-input" id="inp-feet" type="number" placeholder="Feet" min="3" max="7" oninput="validateSlide(3)">
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 3 of 6</div>
+        <div class="ob-title">Your current height</div>
+        <div class="ob-sub">This sets your starting point on the Growth Ruler.</div>
+        <div class="ob-row">
+          <input class="ob-input" id="inp-feet" type="number" placeholder="Feet" min="3" max="7" style="margin-bottom:0" oninput="validateSlide(3)">
+          <input class="ob-input" id="inp-inches" type="number" placeholder="Inches (0–11)" min="0" max="11" style="margin-bottom:0" oninput="validateSlide(3)">
         </div>
-        <div style="flex:1;position:relative">
-          <input class="ob-input" id="inp-inches" type="number" placeholder="Inches (0–11)" min="0" max="11" oninput="validateSlide(3)">
-        </div>
+        <button class="ob-btn" id="btn3" onclick="nextSlide()" disabled style="margin-top:20px">Continue</button>
       </div>
-      <button class="ob-btn" id="btn3" onclick="nextSlide()" disabled>CONTINUE →</button>
     </div>
 
     <!-- Slide 4: Weight -->
     <div class="ob-slide" id="sl4">
-      <div class="ob-title">How much do you weigh?</div>
-      <div class="ob-sub">Used to calculate your optimal protein and calorie targets.</div>
-      <div style="position:relative">
-        <input class="ob-input" id="inp-weight" type="number" placeholder="Weight in lbs" min="50" max="350" oninput="validateSlide(4)" style="padding-right:50px">
-        <span style="position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">lbs</span>
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 4 of 6</div>
+        <div class="ob-title">How much do you weigh?</div>
+        <div class="ob-sub">Used to calculate your protein and calorie targets.</div>
+        <div style="position:relative">
+          <input class="ob-input" id="inp-weight" type="number" placeholder="Weight" min="50" max="350" oninput="validateSlide(4)" style="padding-right:46px">
+          <span style="position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);font-weight:600">lbs</span>
+        </div>
+        <button class="ob-btn" id="btn4" onclick="nextSlide()" disabled>Continue</button>
       </div>
-      <button class="ob-btn" id="btn4" onclick="nextSlide()" disabled>CONTINUE →</button>
     </div>
 
-    <!-- Slide 5: Shoe size & biological sex -->
+    <!-- Slide 5: Shoe + Sex -->
     <div class="ob-slide" id="sl5">
-      <div class="ob-title">A few more details</div>
-      <div class="ob-sub">Shoe size correlates with growth prediction. Biological sex affects your nutrition plan.</div>
-      <input class="ob-input" id="inp-shoe" type="number" placeholder="Shoe size (US)" min="3" max="18" step="0.5" oninput="validateSlide(5)" style="margin-bottom:12px">
-      <div class="ob-options" id="sex-opts">
-        <div class="ob-option" data-val="male" onclick="selectOpt('sex-opts',this);validateSlide(5)">Male</div>
-        <div class="ob-option" data-val="female" onclick="selectOpt('sex-opts',this);validateSlide(5)">Female</div>
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 5 of 6</div>
+        <div class="ob-title">A bit more about you</div>
+        <div class="ob-sub">Shoe size helps predict growth. Biological sex affects your nutrition targets.</div>
+        <input class="ob-input" id="inp-shoe" type="number" placeholder="Shoe size (US)" min="3" max="18" step="0.5" oninput="validateSlide(5)">
+        <div class="ob-options" id="sex-opts">
+          <div class="ob-option" data-val="male" onclick="selectOpt('sex-opts',this);validateSlide(5)">Male</div>
+          <div class="ob-option" data-val="female" onclick="selectOpt('sex-opts',this);validateSlide(5)">Female</div>
+        </div>
+        <button class="ob-btn" id="btn5" onclick="nextSlide()" disabled>Continue</button>
       </div>
-      <button class="ob-btn" id="btn5" onclick="nextSlide()" disabled>CONTINUE →</button>
     </div>
 
-    <!-- Slide 6: Activity level -->
+    <!-- Slide 6: Activity -->
     <div class="ob-slide" id="sl6">
-      <div class="ob-title">How active are you?</div>
-      <div class="ob-sub">Your daily calorie and stretch intensity will be adjusted accordingly.</div>
-      <div class="ob-options" id="act-opts" style="flex-direction:column">
-        <div class="ob-option" data-val="sedentary" onclick="selectOpt('act-opts',this);validateSlide(6)">Sedentary — mostly sitting/school</div>
-        <div class="ob-option" data-val="light" onclick="selectOpt('act-opts',this);validateSlide(6)">Lightly active — walk, light exercise</div>
-        <div class="ob-option" data-val="moderate" onclick="selectOpt('act-opts',this);validateSlide(6)">Moderately active — sports 3–4x/week</div>
-        <div class="ob-option" data-val="very" onclick="selectOpt('act-opts',this);validateSlide(6)">Very active — intense training daily</div>
+      <div style="padding:16px 0">
+        <div class="ob-eyebrow">Step 6 of 6</div>
+        <div class="ob-title">How active are you?</div>
+        <div class="ob-sub">Your calorie target and stretch intensity will be adjusted.</div>
+        <div class="ob-options" id="act-opts" style="flex-direction:column">
+          <div class="ob-option" data-val="sedentary" onclick="selectOpt('act-opts',this);validateSlide(6)">Sedentary — mostly sitting, school</div>
+          <div class="ob-option" data-val="light" onclick="selectOpt('act-opts',this);validateSlide(6)">Lightly active — walks, light workouts</div>
+          <div class="ob-option" data-val="moderate" onclick="selectOpt('act-opts',this);validateSlide(6)">Moderately active — sports 3–4×/week</div>
+          <div class="ob-option" data-val="very" onclick="selectOpt('act-opts',this);validateSlide(6)">Very active — intense training daily</div>
+        </div>
+        <button class="ob-btn" id="btn6" onclick="nextSlide()" disabled>Build My Plan</button>
       </div>
-      <button class="ob-btn" id="btn6" onclick="nextSlide()" disabled>CONTINUE →</button>
     </div>
 
-    <!-- Slide 7: Generating plan -->
+    <!-- Slide 7: Loading -->
     <div class="ob-slide" id="sl7">
-      <div class="ob-title" style="text-align:center;margin-bottom:8px">Building your plan</div>
-      <div class="ob-sub" style="text-align:center">Analyzing your data and personalizing your GrowthOS experience...</div>
-      <div class="ob-loading">
-        <div class="ob-spinner"></div>
-        <div class="ob-load-text">INITIALIZING PROTOCOL</div>
-        <ul class="ob-steps" id="ob-steps">
-          <li class="active" id="step0">Calculating nutritional targets</li>
-          <li id="step1">Generating supplement stack</li>
-          <li id="step2">Programming stretch sequences</li>
-          <li id="step3">Calibrating growth calendar</li>
-          <li id="step4">Activating GrowthOS</li>
-        </ul>
+      <div style="padding:32px 0;text-align:center">
+        <div class="ob-title" style="margin-bottom:6px">Building your plan</div>
+        <div class="ob-sub" style="margin-bottom:28px">Personalizing your GrowthOS experience...</div>
+        <div class="ob-loading">
+          <div class="ob-spinner"></div>
+          <div class="ob-load-text">Processing</div>
+          <ul class="ob-steps" id="ob-steps">
+            <li class="active" id="step0">Calculating nutritional targets</li>
+            <li id="step1">Generating supplement stack</li>
+            <li id="step2">Programming stretch sequences</li>
+            <li id="step3">Calibrating growth calendar</li>
+            <li id="step4">Activating GrowthOS</li>
+          </ul>
+        </div>
       </div>
     </div>
 
   </div>
   <div class="ob-dots" id="ob-dots">
     <div class="ob-dot active"></div>
-    <div class="ob-dot"></div>
-    <div class="ob-dot"></div>
-    <div class="ob-dot"></div>
-    <div class="ob-dot"></div>
-    <div class="ob-dot"></div>
-    <div class="ob-dot"></div>
+    <div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+    <div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div>
     <div class="ob-dot"></div>
   </div>
 </div>
 
-<!-- ══════════════════ APP ══════════════════ -->
+<!-- ══════════════ APP ══════════════ -->
 <div id="app">
   <div class="app-topbar">
-    <div class="app-logo">GROWTH<span style="color:var(--cyan)">OS</span></div>
-    <div class="topbar-points">
-      <span class="topbar-points-icon">⚡</span>
-      <div>
-        <div class="topbar-points-val" id="tb-points">0</div>
-        <div class="topbar-points-label">TOTAL PTS</div>
-      </div>
+    <div class="app-logo">Growth<span>OS</span></div>
+    <div class="topbar-pts">
+      <span style="font-size:13px;margin-right:2px">⚡</span>
+      <span class="topbar-pts-val" id="tb-points">0</span>
+      <span class="topbar-pts-label" style="margin-left:4px">pts</span>
     </div>
   </div>
 
   <div class="app-screens">
 
-    <!-- HOME SCREEN -->
+    <!-- HOME -->
     <div class="screen active" id="screen-home">
       <div class="welcome-msg">
-        <h1 id="welcome-text">What's Up, <span id="welcome-name">there</span>! 👋</h1>
+        <h1 id="welcome-text">What's Up! 👋</h1>
         <p id="welcome-sub">Here's your growth dashboard for today.</p>
       </div>
 
       <div class="growth-hero">
         <div class="body-wrap">
-          <svg id="body-svg" viewBox="0 0 120 310" width="100" height="260">
+          <svg id="body-svg" viewBox="0 0 120 310" width="96" height="248">
             <defs>
               <mask id="body-mask">
-                <!-- Head -->
                 <ellipse cx="60" cy="25" rx="17" ry="19" fill="white"/>
-                <!-- Neck -->
                 <path d="M54,43 L66,43 L64,56 L56,56 Z" fill="white"/>
-                <!-- Torso -->
                 <path d="M28,58 C24,66 22,80 22,96 L22,168 L98,168 L98,96 C98,80 96,66 92,58 L66,56 L54,56 Z" fill="white"/>
-                <!-- Left arm upper -->
                 <path d="M22,62 C16,76 12,100 15,130 L29,128 L30,92 L28,64 Z" fill="white"/>
-                <!-- Left forearm -->
                 <path d="M15,130 C12,148 14,165 18,178 L30,175 L30,128 Z" fill="white"/>
-                <!-- Right arm upper -->
                 <path d="M98,62 C104,76 108,100 105,130 L91,128 L90,92 L92,64 Z" fill="white"/>
-                <!-- Right forearm -->
                 <path d="M105,130 C108,148 106,165 102,178 L90,175 L91,128 Z" fill="white"/>
-                <!-- Left thigh -->
                 <path d="M22,168 L54,168 L52,240 L20,242 Z" fill="white"/>
-                <!-- Left shin -->
                 <path d="M20,242 L52,240 L50,308 L18,308 Z" fill="white"/>
-                <!-- Right thigh -->
                 <path d="M98,168 L66,168 L68,240 L100,242 Z" fill="white"/>
-                <!-- Right shin -->
                 <path d="M100,242 L68,240 L70,308 L102,308 Z" fill="white"/>
               </mask>
-              <linearGradient id="body-fill-grad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stop-color="#00d4ff"/>
-                <stop offset="60%" stop-color="#8b5cf6"/>
-                <stop offset="100%" stop-color="#ec4899"/>
-              </linearGradient>
             </defs>
-            <!-- Dark body base -->
+            <!-- Base body tint -->
             <g mask="url(#body-mask)">
-              <rect width="120" height="310" fill="rgba(0,212,255,0.07)"/>
+              <rect width="120" height="310" fill="rgba(255,255,255,0.04)"/>
             </g>
-            <!-- Gradient fill (grows from bottom) -->
+            <!-- White fill from bottom -->
             <g mask="url(#body-mask)">
-              <rect id="body-fill-rect" x="0" y="310" width="120" height="0" fill="url(#body-fill-grad)" opacity="0.85"/>
+              <rect id="body-fill-rect" x="0" y="310" width="120" height="0" fill="rgba(255,255,255,0.92)"/>
             </g>
-            <!-- Outline on top -->
-            <ellipse cx="60" cy="25" rx="17" ry="19" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M54,43 L66,43 L64,56 L56,56 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M28,58 C24,66 22,80 22,96 L22,168 L98,168 L98,96 C98,80 96,66 92,58 L66,56 L54,56 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M22,62 C16,76 12,100 15,130 L29,128 L30,92 L28,64 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M15,130 C12,148 14,165 18,178 L30,175 L30,128 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M98,62 C104,76 108,100 105,130 L91,128 L90,92 L92,64 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M105,130 C108,148 106,165 102,178 L90,175 L91,128 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M22,168 L54,168 L52,240 L20,242 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M20,242 L52,240 L50,308 L18,308 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M98,168 L66,168 L68,240 L100,242 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M100,242 L68,240 L70,308 L102,308 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.8"/>
+            <!-- Outline -->
+            <g mask="url(#body-mask)" style="mix-blend-mode:normal">
+            </g>
+            <ellipse cx="60" cy="25" rx="17" ry="19" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M54,43 L66,43 L64,56 L56,56 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M28,58 C24,66 22,80 22,96 L22,168 L98,168 L98,96 C98,80 96,66 92,58 L66,56 L54,56 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M22,62 C16,76 12,100 15,130 L29,128 L30,92 L28,64 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M15,130 C12,148 14,165 18,178 L30,175 L30,128 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M98,62 C104,76 108,100 105,130 L91,128 L90,92 L92,64 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M105,130 C108,148 106,165 102,178 L90,175 L91,128 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M22,168 L54,168 L52,240 L20,242 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M20,242 L52,240 L50,308 L18,308 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M98,168 L66,168 L68,240 L100,242 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <path d="M100,242 L68,240 L70,308 L102,308 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
           </svg>
         </div>
 
         <div class="ruler-wrap">
-          <div class="ruler-title">HEIGHT</div>
-          <svg id="ruler-svg" viewBox="0 0 34 260" width="34" height="260">
-            <!-- ruler drawn dynamically by JS -->
-          </svg>
+          <div class="ruler-label">Height</div>
+          <svg id="ruler-svg" viewBox="0 0 36 248" width="36" height="248"></svg>
         </div>
 
-        <div class="points-panel">
-          <div class="pts-card">
-            <div class="pts-val" id="home-pts">0</div>
-            <div class="pts-label">GROWTH PTS</div>
-            <div class="pts-progress-wrap">
-              <div class="pts-bar-bg"><div class="pts-bar-fill" id="pts-bar" style="width:0%"></div></div>
-              <div class="pts-bar-label"><span id="pts-cur">0</span><span>100</span></div>
+        <div class="stats-col">
+          <div class="stat-card">
+            <div class="stat-val" id="home-pts">0</div>
+            <div class="stat-label">Growth Pts</div>
+            <div class="pts-fill-wrap">
+              <div class="pts-track"><div class="pts-fill" id="pts-bar" style="width:0%"></div></div>
+              <div class="pts-track-labels"><span id="pts-cur">0</span><span>100</span></div>
             </div>
           </div>
-          <div class="height-card">
-            <div class="h-val" id="current-height-display">5'8"</div>
-            <div class="h-label">CURRENT HEIGHT</div>
+          <div class="stat-card">
+            <div class="stat-val" id="current-height-display">—</div>
+            <div class="stat-label">Height</div>
           </div>
-          <div class="streak-card">
-            <div class="s-val" id="streak-display">0</div>
-            <div class="s-label">DAY STREAK 🔥</div>
+          <div class="stat-card accent">
+            <div class="stat-val" id="streak-display">0</div>
+            <div class="stat-label">Streak 🔥</div>
           </div>
         </div>
       </div>
 
-      <div class="today-progress">
-        <div class="today-header">
-          <h3>TODAY'S PROGRESS</h3>
-          <span id="today-pct">0 / 0 tasks</span>
+      <div class="today-progress-card">
+        <div class="today-prog-header">
+          <h3>Today's Progress</h3>
+          <span id="today-pct">0 / 0</span>
         </div>
-        <div class="today-bar-bg"><div class="today-bar-fill" id="today-bar" style="width:0%"></div></div>
+        <div class="prog-track"><div class="prog-fill" id="today-bar" style="width:0%"></div></div>
       </div>
 
-      <div class="section-label">TODAY'S KEY TASKS</div>
-      <div class="quick-tasks" id="home-tasks"></div>
+      <div class="section-label">Today's Tasks</div>
+      <div id="home-tasks"></div>
     </div>
 
-    <!-- CALENDAR SCREEN -->
+    <!-- CALENDAR -->
     <div class="screen" id="screen-calendar">
       <div class="cal-header">
-        <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
         <h2 id="cal-month-label">March 2026</h2>
-        <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <div class="cal-task-section">
-        <div class="cal-task-date" id="cal-selected-label">SELECT A DAY</div>
-        <div id="cal-tasks"></div>
-      </div>
+      <div class="cal-task-date" id="cal-selected-label">SELECT A DAY</div>
+      <div id="cal-tasks"></div>
     </div>
 
-    <!-- NUTRITION SCREEN -->
+    <!-- NUTRITION -->
     <div class="screen" id="screen-nutrition">
-      <div class="section-label">DAILY TARGETS</div>
+      <div class="section-label">Daily Targets</div>
       <div class="macro-row">
-        <div class="macro-card calories"><div class="macro-val" id="nut-cal">—</div><div class="macro-unit">kcal</div><div class="macro-label">Calories</div></div>
-        <div class="macro-card protein"><div class="macro-val" id="nut-pro">—</div><div class="macro-unit">g</div><div class="macro-label">Protein</div></div>
-        <div class="macro-card carbs"><div class="macro-val" id="nut-carb">—</div><div class="macro-unit">g</div><div class="macro-label">Carbs</div></div>
-        <div class="macro-card fat"><div class="macro-val" id="nut-fat">—</div><div class="macro-unit">g</div><div class="macro-label">Fat</div></div>
+        <div class="macro-card m-cal"><div class="macro-num" id="nut-cal">—</div><div class="macro-unit">kcal</div><div class="macro-name">Calories</div></div>
+        <div class="macro-card m-protein"><div class="macro-num" id="nut-pro">—</div><div class="macro-unit">g</div><div class="macro-name">Protein</div></div>
+        <div class="macro-card"><div class="macro-num" id="nut-carb">—</div><div class="macro-unit">g</div><div class="macro-name">Carbs</div></div>
+        <div class="macro-card"><div class="macro-num" id="nut-fat">—</div><div class="macro-unit">g</div><div class="macro-name">Fat</div></div>
       </div>
 
-      <div class="water-tracker">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-weight:600;font-size:14px">Water Intake</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">Goal: 8 glasses (64oz)</div>
-          </div>
-          <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--cyan)" id="water-count">0/8</div>
+      <div class="water-card">
+        <div class="water-head">
+          <div><div class="w-title">Water Intake</div><div class="w-sub">Goal: 8 glasses (64 oz)</div></div>
+          <div class="w-count" id="water-count">0/8</div>
         </div>
         <div class="water-cups" id="water-cups"></div>
       </div>
 
-      <div class="section-label">TODAY'S MEAL PLAN</div>
+      <div class="section-label">Today's Meal Plan</div>
       <div id="meal-cards"></div>
 
-      <div class="section-label">DAILY SUPPLEMENTS</div>
+      <div class="section-label">Daily Supplements</div>
       <div class="supp-grid" id="supp-grid"></div>
 
-      <div class="section-label">GROWTH NUTRITION TIPS</div>
-      <div class="card" style="margin-bottom:10px">
-        <div style="font-size:13px;color:var(--muted);line-height:1.8" id="nut-tips"></div>
-      </div>
+      <div class="section-label">Nutrition Tips</div>
+      <div class="tips-card" id="tips-card"></div>
     </div>
 
   </div>
@@ -501,685 +513,438 @@ canvas#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
   <div class="app-bottomnav">
     <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>HOME</span>
+      <span>Home</span>
     </button>
     <button class="nav-btn" id="nav-calendar" onclick="navTo('calendar')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>CALENDAR</span>
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Calendar</span>
     </button>
     <button class="nav-btn" id="nav-nutrition" onclick="navTo('nutrition')">
       <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-      <span>NUTRITION</span>
+      <span>Nutrition</span>
     </button>
   </div>
 </div>
 
-<div class="grow-toast" id="grow-toast">+1 INCH UNLOCKED!</div>
+<div class="grow-toast" id="grow-toast">+1 Inch Milestone Unlocked</div>
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  STARS BACKGROUND
+//  DATA
 // ═══════════════════════════════════════════════════════
-(function(){
-  const c=document.getElementById('stars');
-  const ctx=c.getContext('2d');
-  let W,H,stars=[];
-  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;stars=[];for(let i=0;i<140;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+.2,o:Math.random(),s:Math.random()*.003+.001,t:Math.random()*Math.PI*2})}
-  function draw(){ctx.clearRect(0,0,W,H);stars.forEach(s=>{s.t+=s.s;s.o=.2+.6*Math.abs(Math.sin(s.t));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(180,220,255,${s.o})`;ctx.fill()})}
-  window.addEventListener('resize',resize);resize();setInterval(draw,50)
-})();
-
-// ═══════════════════════════════════════════════════════
-//  FLOATING PARTICLES (onboarding bg)
-// ═══════════════════════════════════════════════════════
-(function(){
-  const ob=document.getElementById('onboarding');
-  const colors=['rgba(0,212,255,','rgba(139,92,246,','rgba(236,72,153,'];
-  function spawn(){
-    const p=document.createElement('div');
-    p.className='float-particle';
-    const c=colors[Math.floor(Math.random()*colors.length)];
-    const size=Math.random()*6+2;
-    p.style.cssText=`width:${size}px;height:${size}px;background:${c}0.6);left:${Math.random()*100}%;bottom:-10px;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*2}s`;
-    ob.appendChild(p);
-    setTimeout(()=>p.remove(),(Math.random()*8+6)*1000+2000)
-  }
-  setInterval(spawn,600)
-})();
-
-// ═══════════════════════════════════════════════════════
-//  DATA: MEALS (7-day rotation)
-// ═══════════════════════════════════════════════════════
-const MEALS = [
+const MEALS=[
   {breakfast:{icon:'🥣',name:'Greek Yogurt Power Bowl',items:['1 cup full-fat Greek yogurt','¼ cup granola','Mixed berries','2 tbsp honey','Handful of almonds'],protein:24,carbs:52,fat:12,cal:410},
-   lunch:{icon:'🍗',name:'Grilled Chicken Rice Bowl',items:['6oz grilled chicken breast (42g protein)','1.5 cups brown rice','Steamed broccoli & carrots','1 tbsp olive oil drizzle'],protein:52,carbs:68,fat:14,cal:610},
-   dinner:{icon:'🐟',name:'Baked Salmon & Sweet Potato',items:['8oz baked salmon (44g protein)','1 large sweet potato','Sautéed asparagus','Lemon-herb butter sauce'],protein:50,carbs:44,fat:22,cal:590},
-   snack:{icon:'🥤',name:'Protein Shake + Peanut Butter',items:['1 scoop whey protein (25g)','1 banana','1 cup whole milk','1.5 tbsp natural peanut butter'],protein:38,carbs:40,fat:14,cal:430}},
-  {breakfast:{icon:'🍳',name:'Egg & Avocado Toast',items:['3 whole eggs scrambled','2 slices whole grain bread','½ avocado sliced','Cherry tomatoes','Salt & pepper'],protein:26,carbs:38,fat:24,cal:470},
-   lunch:{icon:'🥩',name:'Lean Beef & Quinoa Bowl',items:['6oz lean ground beef (90%)','1 cup cooked quinoa','Roasted bell peppers','Salsa & cilantro'],protein:50,carbs:54,fat:18,cal:580},
-   dinner:{icon:'🍖',name:'Turkey Meatballs & Pasta',items:['6 turkey meatballs (34g protein)','1.5 cups whole wheat pasta','Marinara sauce','Parmesan cheese'],protein:44,carbs:72,fat:16,cal:620},
-   snack:{icon:'🧀',name:'Cottage Cheese & Fruit',items:['1 cup low-fat cottage cheese','1 cup pineapple chunks','Mixed nuts (1oz)'],protein:32,carbs:28,fat:10,cal:330}},
-  {breakfast:{icon:'🥞',name:'Protein Pancakes',items:['3 protein pancakes (from mix)','2 eggs mixed in batter','1 cup mixed berries','2 tbsp maple syrup','Greek yogurt on side'],protein:36,carbs:62,fat:12,cal:500},
-   lunch:{icon:'🌮',name:'Chicken Burrito Bowl',items:['6oz grilled chicken','Black beans (½ cup)','Brown rice','Guac, salsa, cheese','Sour cream'],protein:54,carbs:76,fat:22,cal:700},
-   dinner:{icon:'🦐',name:'Shrimp Stir-Fry & Rice',items:['8oz shrimp (40g protein)','2 cups jasmine rice','Broccoli, snap peas, carrots','Teriyaki sauce','Sesame seeds'],protein:46,carbs:80,fat:10,cal:590},
-   snack:{icon:'🍎',name:'Apple with Almond Butter',items:['2 medium apples','3 tbsp almond butter','String cheese (1oz)'],protein:14,carbs:50,fat:22,cal:450}},
-  {breakfast:{icon:'🧇',name:'Overnight Oats',items:['1 cup rolled oats','1 cup milk','1 scoop protein powder','Chia seeds (1 tbsp)','Banana & blueberries'],protein:38,carbs:72,fat:10,cal:520},
-   lunch:{icon:'🥗',name:'Tuna & Chickpea Salad',items:['2 cans tuna (46g protein)','1 cup chickpeas','Mixed greens','Olive oil & lemon dressing','Whole grain pita'],protein:58,carbs:62,fat:14,cal:600},
-   dinner:{icon:'🍗',name:'Herb Chicken Thighs & Veggies',items:['2 bone-in chicken thighs','Roasted potatoes (1 cup)','Green beans','Garlic herb marinade'],protein:46,carbs:52,fat:20,cal:580},
-   snack:{icon:'🥛',name:'Chocolate Milk & Banana',items:['2 cups chocolate milk','1 large banana','Hard boiled egg (2x)'],protein:24,carbs:58,fat:12,cal:440}},
-  {breakfast:{icon:'🍌',name:'Smoothie Bowl',items:['1 frozen banana','1 cup frozen mango','1 scoop protein powder','Granola topping','Hemp seeds & coconut'],protein:32,carbs:78,fat:10,cal:530},
-   lunch:{icon:'🥙',name:'Turkey & Veggie Wrap',items:['4oz turkey breast slices','Whole wheat tortilla','Hummus spread','Spinach, tomato, cucumber'],protein:38,carbs:58,fat:12,cal:490},
-   dinner:{icon:'🐄',name:'Sirloin Steak & Broccoli',items:['8oz sirloin steak (56g protein)','Steamed broccoli','Mashed sweet potato','Garlic butter'],protein:58,carbs:46,fat:24,cal:630},
-   snack:{icon:'🫘',name:'Edamame & Trail Mix',items:['1 cup shelled edamame','Homemade trail mix (1oz)','String cheese'],protein:22,carbs:32,fat:16,cal:360}},
-  {breakfast:{icon:'🥚',name:'Veggie Omelette',items:['4 whole eggs','Bell peppers, mushrooms','Spinach & onion','Shredded cheese (1oz)','Whole grain toast'],protein:34,carbs:26,fat:20,cal:420},
-   lunch:{icon:'🍱',name:'Salmon Sushi Bowl',items:['6oz salmon (raw-grade or cooked)','Sushi rice (1 cup)','Edamame, cucumber, avocado','Soy sauce & sriracha mayo'],protein:46,carbs:70,fat:20,cal:640},
-   dinner:{icon:'🍝',name:'Chicken & Chickpea Pasta',items:['5oz grilled chicken','1.5 cups chickpea pasta (high protein)','Spinach & cherry tomatoes','Pesto sauce'],protein:60,carbs:62,fat:16,cal:620},
-   snack:{icon:'🍫',name:'Dark Chocolate & Nuts',items:['2 squares dark chocolate (70%+)','Mixed nuts (1.5oz)','1 cup milk'],protein:16,carbs:30,fat:24,cal:400}},
-  {breakfast:{icon:'🫓',name:'Bagel & Smoked Salmon',items:['1 whole grain bagel','3oz smoked salmon (20g protein)','Cream cheese (2 tbsp)','Capers, cucumber, red onion'],protein:32,carbs:52,fat:14,cal:460},
-   lunch:{icon:'🥩',name:'BBQ Pulled Chicken Bowl',items:['7oz pulled chicken breast','Brown rice (1.5 cups)','Coleslaw (Greek yogurt based)','BBQ sauce (2 tbsp)'],protein:56,carbs:74,fat:12,cal:640},
-   dinner:{icon:'🐟',name:'Cod & Roasted Veg',items:['8oz cod fillet (46g protein)','Roasted zucchini & tomatoes','Baby potatoes','Lemon & herb'],protein:48,carbs:48,fat:10,cal:470},
-   snack:{icon:'🥜',name:'Peanut Butter Rice Cakes',items:['3 rice cakes','3 tbsp natural peanut butter','Sliced banana','Drizzle of honey'],protein:16,carbs:52,fat:18,cal:430}}
+   lunch:{icon:'🍗',name:'Grilled Chicken Rice Bowl',items:['6oz grilled chicken breast','1.5 cups brown rice','Steamed broccoli','1 tbsp olive oil'],protein:52,carbs:68,fat:14,cal:610},
+   dinner:{icon:'🐟',name:'Baked Salmon & Sweet Potato',items:['8oz baked salmon','1 large sweet potato','Sautéed asparagus','Lemon herb butter'],protein:50,carbs:44,fat:22,cal:590},
+   snack:{icon:'🥤',name:'Protein Shake',items:['1 scoop whey protein (25g)','1 banana','1 cup whole milk','1.5 tbsp peanut butter'],protein:38,carbs:40,fat:14,cal:430}},
+  {breakfast:{icon:'🍳',name:'Egg & Avocado Toast',items:['3 whole eggs scrambled','2 slices whole grain bread','½ avocado','Cherry tomatoes'],protein:26,carbs:38,fat:24,cal:470},
+   lunch:{icon:'🥩',name:'Lean Beef & Quinoa Bowl',items:['6oz lean ground beef','1 cup cooked quinoa','Roasted peppers','Salsa & cilantro'],protein:50,carbs:54,fat:18,cal:580},
+   dinner:{icon:'🍖',name:'Turkey Meatballs & Pasta',items:['6 turkey meatballs','1.5 cups whole wheat pasta','Marinara sauce','Parmesan'],protein:44,carbs:72,fat:16,cal:620},
+   snack:{icon:'🧀',name:'Cottage Cheese & Fruit',items:['1 cup low-fat cottage cheese','1 cup pineapple','1oz mixed nuts'],protein:32,carbs:28,fat:10,cal:330}},
+  {breakfast:{icon:'🥞',name:'Protein Pancakes',items:['3 protein pancakes','2 eggs in batter','1 cup mixed berries','2 tbsp maple syrup'],protein:36,carbs:62,fat:12,cal:500},
+   lunch:{icon:'🌮',name:'Chicken Burrito Bowl',items:['6oz grilled chicken','Black beans (½ cup)','Brown rice','Guac, salsa, cheese'],protein:54,carbs:76,fat:22,cal:700},
+   dinner:{icon:'🦐',name:'Shrimp Stir-Fry & Rice',items:['8oz shrimp','2 cups jasmine rice','Broccoli, snap peas, carrots','Teriyaki sauce'],protein:46,carbs:80,fat:10,cal:590},
+   snack:{icon:'🍎',name:'Apple with Almond Butter',items:['2 medium apples','3 tbsp almond butter','String cheese'],protein:14,carbs:50,fat:22,cal:450}},
+  {breakfast:{icon:'🧇',name:'Overnight Oats',items:['1 cup rolled oats','1 cup milk','1 scoop protein powder','Chia seeds','Banana & blueberries'],protein:38,carbs:72,fat:10,cal:520},
+   lunch:{icon:'🥗',name:'Tuna & Chickpea Salad',items:['2 cans tuna','1 cup chickpeas','Mixed greens','Olive oil & lemon','Whole grain pita'],protein:58,carbs:62,fat:14,cal:600},
+   dinner:{icon:'🍗',name:'Herb Chicken Thighs',items:['2 chicken thighs','Roasted potatoes (1 cup)','Green beans','Garlic herb marinade'],protein:46,carbs:52,fat:20,cal:580},
+   snack:{icon:'🥛',name:'Chocolate Milk & Banana',items:['2 cups chocolate milk','1 large banana','2 hard boiled eggs'],protein:24,carbs:58,fat:12,cal:440}},
+  {breakfast:{icon:'🍌',name:'Smoothie Bowl',items:['1 frozen banana','1 cup frozen mango','1 scoop protein powder','Granola','Hemp seeds'],protein:32,carbs:78,fat:10,cal:530},
+   lunch:{icon:'🥙',name:'Turkey & Veggie Wrap',items:['4oz turkey breast','Whole wheat tortilla','Hummus spread','Spinach, tomato, cucumber'],protein:38,carbs:58,fat:12,cal:490},
+   dinner:{icon:'🐄',name:'Sirloin Steak & Broccoli',items:['8oz sirloin steak','Steamed broccoli','Mashed sweet potato','Garlic butter'],protein:58,carbs:46,fat:24,cal:630},
+   snack:{icon:'🫘',name:'Edamame & Trail Mix',items:['1 cup shelled edamame','1oz trail mix','String cheese'],protein:22,carbs:32,fat:16,cal:360}},
+  {breakfast:{icon:'🥚',name:'Veggie Omelette',items:['4 whole eggs','Bell peppers, mushrooms','Spinach & onion','Shredded cheese','Toast'],protein:34,carbs:26,fat:20,cal:420},
+   lunch:{icon:'🍱',name:'Salmon Bowl',items:['6oz salmon','Sushi rice (1 cup)','Edamame, cucumber, avocado','Soy & sriracha mayo'],protein:46,carbs:70,fat:20,cal:640},
+   dinner:{icon:'🍝',name:'Chicken & Chickpea Pasta',items:['5oz grilled chicken','1.5 cups chickpea pasta','Spinach & tomatoes','Pesto sauce'],protein:60,carbs:62,fat:16,cal:620},
+   snack:{icon:'🍫',name:'Dark Chocolate & Nuts',items:['2 squares dark chocolate','1.5oz mixed nuts','1 cup milk'],protein:16,carbs:30,fat:24,cal:400}},
+  {breakfast:{icon:'🫓',name:'Bagel & Smoked Salmon',items:['1 whole grain bagel','3oz smoked salmon','Cream cheese (2 tbsp)','Capers, cucumber, onion'],protein:32,carbs:52,fat:14,cal:460},
+   lunch:{icon:'🥩',name:'BBQ Pulled Chicken Bowl',items:['7oz pulled chicken breast','Brown rice (1.5 cups)','Coleslaw (yogurt based)','BBQ sauce'],protein:56,carbs:74,fat:12,cal:640},
+   dinner:{icon:'🐟',name:'Cod & Roasted Veg',items:['8oz cod fillet','Roasted zucchini & tomatoes','Baby potatoes','Lemon & herbs'],protein:48,carbs:48,fat:10,cal:470},
+   snack:{icon:'🥜',name:'Peanut Butter Rice Cakes',items:['3 rice cakes','3 tbsp peanut butter','Sliced banana'],protein:16,carbs:52,fat:18,cal:430}}
 ];
 
-const SUPPLEMENTS = [
-  {icon:'🦴',name:'Calcium',dose:'1000–1300 mg',note:'Take with meals. Essential for bone density & length. Split into 500mg doses for better absorption.',timing:'With breakfast & dinner'},
-  {icon:'☀️',name:'Vitamin D3',dose:'2000 IU',note:'Pairs with calcium to maximize absorption. Most teens are deficient — critical for growth plates.',timing:'With your fattiest meal'},
-  {icon:'🐟',name:'Omega-3 Fish Oil',dose:'1000–2000 mg EPA+DHA',note:'Reduces inflammation, supports joint health, and may improve sleep quality for better HGH release.',timing:'With lunch or dinner'},
-  {icon:'⚡',name:'Zinc',dose:'10–15 mg',note:'Directly involved in growth hormone production. Deficiency can stunt growth. Do not exceed 40mg/day.',timing:'With dinner, not with calcium'},
-  {icon:'💊',name:'Magnesium Glycinate',dose:'200–400 mg',note:'Supports deep sleep (when growth hormone spikes) and muscle recovery after stretching.',timing:'30 min before bed'},
-  {icon:'🌿',name:'Vitamin K2 (MK-7)',dose:'100 mcg',note:'Directs calcium into bones rather than arteries. Take alongside Vitamin D3 for synergistic effect.',timing:'With Vitamin D3'}
+const SUPPLEMENTS=[
+  {icon:'🦴',name:'Calcium',dose:'1000–1300 mg/day',note:'Split into 2 doses of 500mg for better absorption. Take with meals.',timing:'With breakfast & dinner'},
+  {icon:'☀️',name:'Vitamin D3',dose:'2000 IU/day',note:'Pairs with calcium to maximize bone absorption. Most teens are deficient.',timing:'With your fattiest meal'},
+  {icon:'🐟',name:'Fish Oil (Omega-3)',dose:'1000–2000 mg EPA+DHA',note:'Reduces inflammation, supports joints, improves sleep quality.',timing:'With lunch or dinner'},
+  {icon:'⚡',name:'Zinc',dose:'10–15 mg/day',note:'Directly involved in growth hormone production. Do not exceed 40mg/day.',timing:'With dinner, not with calcium'},
+  {icon:'💊',name:'Magnesium Glycinate',dose:'200–400 mg/day',note:'Supports deep sleep when GH spikes, and muscle recovery after stretching.',timing:'30 min before bed'},
+  {icon:'🌿',name:'Vitamin K2 (MK-7)',dose:'100 mcg/day',note:'Directs calcium into bones rather than arteries. Synergistic with D3.',timing:'With Vitamin D3'}
 ];
 
 // ═══════════════════════════════════════════════════════
-//  TASK TEMPLATES (generated per user profile)
+//  TASK BUILDER
 // ═══════════════════════════════════════════════════════
-function buildDailyTasks(user, dateKey) {
-  const proteinGoal = Math.round(user.weight * 0.85);
-  const calGoal = calcCalories(user);
-  const isActiveDay = [1,3,5].includes(new Date(dateKey+'T12:00:00').getDay()); // Mon/Wed/Fri = stretch focus
-
-  return [
-    // NUTRITION
-    {id:'protein',cat:'nutrition',name:`Hit ${proteinGoal}g protein today`,detail:`Your target: ${proteinGoal}g. See meal plan in Nutrition tab.`,pts:1},
-    {id:'calcium_food',cat:'nutrition',name:'Get 2+ calcium-rich foods',detail:'Dairy (milk, yogurt, cheese), leafy greens, or fortified foods.',pts:1},
-    {id:'water',cat:'nutrition',name:'Drink 8+ glasses of water',detail:'Hydration is essential for disc health and growth plate function.',pts:1},
-    {id:'no_junk',cat:'nutrition',name:'Avoid processed/junk food',detail:'Processed foods raise cortisol which suppresses growth hormone.',pts:1},
-    // SUPPLEMENTS
-    {id:'vit_d',cat:'supplement',name:'Take Vitamin D3 (2000 IU)',detail:'With your fattiest meal for best absorption.',pts:1},
-    {id:'calcium_supp',cat:'supplement',name:'Take Calcium (1000mg)',detail:'Split doses: 500mg with breakfast, 500mg with dinner.',pts:1},
-    {id:'fish_oil',cat:'supplement',name:'Take Fish Oil (1000mg)',detail:'With lunch or dinner. Refrigerate to avoid fishy burps.',pts:1},
-    {id:'zinc',cat:'supplement',name:'Take Zinc (10–15mg)',detail:'With dinner. Do NOT take at same time as calcium.',pts:1},
-    {id:'magnesium',cat:'supplement',name:'Take Magnesium Glycinate (200mg)',detail:'30 minutes before bed. Improves sleep quality & HGH release.',pts:1},
-    // STRETCHES
-    {id:'dead_hang',cat:'stretch',name:'Dead hang — 3 sets of 30 seconds',detail:'Decompresses spine, stretches lats. Use a pull-up bar.',pts:1},
-    {id:'cobra',cat:'stretch',name:'Cobra stretch — 3 × 30 seconds',detail:'Arches thoracic spine, opens chest, counteracts slouching.',pts:1},
-    {id:'cat_cow',cat:'stretch',name:'Cat-cow — 2 minutes continuous',detail:'Mobilizes entire spine, lubricates spinal discs.',pts:1},
-    {id:'hip_flexor',cat:'stretch',name:'Hip flexor stretch — 2 × 60 sec each side',detail:'Tight hip flexors pull your spine into anterior tilt, killing posture.',pts:1},
+function buildDailyTasks(user,dateKey){
+  const proteinGoal=Math.round(user.weight*.85);
+  const isActiveDay=[1,3,5].includes(new Date(dateKey+'T12:00:00').getDay());
+  return[
+    {id:'protein',cat:'nutrition',name:`Hit ${proteinGoal}g protein today`,detail:`Your target: ${proteinGoal}g. See the Nutrition tab for your meal plan.`},
+    {id:'calcium_food',cat:'nutrition',name:'Eat 2+ calcium-rich foods',detail:'Dairy (milk, yogurt, cheese), leafy greens, or fortified foods.'},
+    {id:'water',cat:'nutrition',name:'Drink 8+ glasses of water',detail:'Hydration is essential for disc health and growth plate function.'},
+    {id:'no_junk',cat:'nutrition',name:'Avoid processed & junk food',detail:'Processed foods raise cortisol which suppresses growth hormone.'},
+    {id:'vit_d',cat:'supplement',name:'Take Vitamin D3 (2000 IU)',detail:'With your fattiest meal for best absorption.'},
+    {id:'calcium_supp',cat:'supplement',name:'Take Calcium (500mg × 2)',detail:'Split: 500mg with breakfast, 500mg with dinner.'},
+    {id:'fish_oil',cat:'supplement',name:'Take Fish Oil (1000mg)',detail:'With lunch or dinner. Refrigerate to avoid fishy aftertaste.'},
+    {id:'zinc',cat:'supplement',name:'Take Zinc (10–15mg)',detail:'With dinner. Do not take at the same time as calcium.'},
+    {id:'magnesium',cat:'supplement',name:'Take Magnesium Glycinate (200mg)',detail:'30 minutes before bed. Improves sleep quality and GH release.'},
+    {id:'dead_hang',cat:'stretch',name:'Dead hang — 3 sets × 30 seconds',detail:'Decompresses the spine, stretches lats. Use a pull-up bar.'},
+    {id:'cobra',cat:'stretch',name:'Cobra stretch — 3 × 30 seconds',detail:'Opens the thoracic spine and chest, counteracts slouching.'},
+    {id:'cat_cow',cat:'stretch',name:'Cat-cow — 2 minutes',detail:'Mobilizes the entire spine, lubricates spinal discs.'},
+    {id:'hip_flexor',cat:'stretch',name:'Hip flexor stretch — 60 sec each side',detail:'Tight hip flexors pull your spine into anterior tilt, killing posture.'},
     isActiveDay
-      ? {id:'inversion',cat:'stretch',name:'Inversion table or headstand — 5 min',detail:'Gravity reversal decompresses spinal discs. Adds up to 1cm temporary height.',pts:1}
-      : {id:'forward_fold',cat:'stretch',name:'Standing forward fold — 3 × 30 sec',detail:'Lengthens entire posterior chain (hamstrings → spine).',pts:1},
-    // HABITS
-    {id:'posture',cat:'habit',name:'Maintain upright posture all day',detail:'Slouching compresses discs over time. Chin up, shoulders back.',pts:1},
-    {id:'sleep',cat:'habit',name:`Sleep ${user.age <= 13 ? '9–11' : '8–10'} hours tonight`,detail:'80% of growth hormone is released during deep sleep stages 3 & 4.',pts:1},
-    {id:'no_phone_lying',cat:'habit',name:'No phone while lying down',detail:'Forward head posture from phone use adds up to 60 lbs of compressive force on spine.',pts:1},
-    {id:'walk_tall',cat:'habit',name:'Walk tall — head up, eyes forward',detail:'Practice height awareness. Decompressed spine = max daily height expression.',pts:1},
-    {id:'sunlight',cat:'habit',name:'Get 15+ min of morning sunlight',detail:'Sets circadian rhythm, boosts Vitamin D, improves sleep quality at night.',pts:1},
+      ?{id:'inversion',cat:'stretch',name:'Inversion or headstand — 5 min',detail:'Gravity reversal decompresses spinal discs. Can add temporary height.'}
+      :{id:'forward_fold',cat:'stretch',name:'Standing forward fold — 3 × 30 sec',detail:'Lengthens the entire posterior chain from hamstrings to spine.'},
+    {id:'posture',cat:'habit',name:'Maintain upright posture all day',detail:'Slouching compresses discs over time. Chin up, shoulders back.'},
+    {id:'sleep',cat:'habit',name:`Sleep ${user.age<=13?'9–11':'8–10'} hours tonight`,detail:'80% of growth hormone is released during deep sleep stages 3 & 4.'},
+    {id:'no_phone_lying',cat:'habit',name:'No phone while lying down',detail:'Forward head posture adds up to 60 lbs of compressive force on spine.'},
+    {id:'walk_tall',cat:'habit',name:'Walk tall — head up, eyes forward',detail:'Practice height awareness. Decompressed spine = max height expression.'},
+    {id:'sunlight',cat:'habit',name:'Get 15+ min of morning sunlight',detail:'Sets circadian rhythm, boosts Vitamin D, improves sleep at night.'},
   ];
 }
 
-function calcCalories(user) {
-  // Mifflin-St Jeor teen estimate
-  const bmr = user.sex === 'male'
-    ? 10 * (user.weight/2.205) + 6.25 * (user.height * 2.54) - 5 * user.age + 5
-    : 10 * (user.weight/2.205) + 6.25 * (user.height * 2.54) - 5 * user.age - 161;
-  const actMult = {sedentary:1.35,light:1.5,moderate:1.65,very:1.85}[user.activity]||1.5;
-  // Add 15% for growth overhead
-  return Math.round(bmr * actMult * 1.15);
+function calcCalories(user){
+  const bmr=user.sex==='male'
+    ?10*(user.weight/2.205)+6.25*(user.height*2.54)-5*user.age+5
+    :10*(user.weight/2.205)+6.25*(user.height*2.54)-5*user.age-161;
+  const m={sedentary:1.35,light:1.5,moderate:1.65,very:1.85}[user.activity]||1.5;
+  return Math.round(bmr*m*1.15);
 }
 
 // ═══════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════
-let USER = null; // { name, age, feet, inches, height (total inches), weight, shoe, sex, activity }
-let STATE = {
-  totalPts: 0,       // total accumulated points (never resets)
-  cyclePts: 0,       // points in current inch-cycle (resets at 100)
-  virtualInches: 0,  // how many virtual inches gained
-  streak: 0,
-  lastActive: null,
-  water: {}          // {dateKey: count}
-};
-let calViewDate = new Date();
-let selectedCalDate = todayKey();
+let USER=null;
+let STATE={totalPts:0,cyclePts:0,virtualInches:0,streak:0,lastActive:null,water:{}};
+let calViewDate=new Date();
+let selectedCalDate=todayKey();
 
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function loadState() {
-  try {
-    const u = localStorage.getItem('gos_user');
-    const s = localStorage.getItem('gos_state');
-    if (u) USER = JSON.parse(u);
-    if (s) STATE = JSON.parse(s);
-  } catch(e){}
-}
-
-function saveState() {
-  localStorage.setItem('gos_user', JSON.stringify(USER));
-  localStorage.setItem('gos_state', JSON.stringify(STATE));
-}
-
-function getTasksForDate(dateKey) {
-  const key = `gos_tasks_${dateKey}`;
-  try { return JSON.parse(localStorage.getItem(key)) || {}; } catch(e){ return {}; }
-}
-
-function saveTasksForDate(dateKey, tasks) {
-  localStorage.setItem(`gos_tasks_${dateKey}`, JSON.stringify(tasks));
-}
+function todayKey(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function loadState(){try{const u=localStorage.getItem('gos_user');const s=localStorage.getItem('gos_state');if(u)USER=JSON.parse(u);if(s)STATE=JSON.parse(s)}catch(e){}}
+function saveState(){localStorage.setItem('gos_user',JSON.stringify(USER));localStorage.setItem('gos_state',JSON.stringify(STATE))}
+function getTasksForDate(k){try{return JSON.parse(localStorage.getItem('gos_tasks_'+k))||{}}catch(e){return{}}}
+function saveTasksForDate(k,t){localStorage.setItem('gos_tasks_'+k,JSON.stringify(t))}
 
 // ═══════════════════════════════════════════════════════
 //  ONBOARDING
 // ═══════════════════════════════════════════════════════
-let currentSlide = 0;
-const TOTAL_SLIDES = 8;
+let currentSlide=0;
+const TOTAL_SLIDES=8;
 
-function updateProgress() {
-  const pct = (currentSlide / (TOTAL_SLIDES - 1)) * 100;
-  document.getElementById('ob-prog').style.width = pct + '%';
-  document.querySelectorAll('.ob-dot').forEach((d,i) => {
-    d.classList.toggle('active', i === currentSlide);
-  });
+function updateProgress(){
+  document.getElementById('ob-prog').style.width=(currentSlide/(TOTAL_SLIDES-1)*100)+'%';
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSlide));
 }
 
-function nextSlide() {
-  if (currentSlide === TOTAL_SLIDES - 2) {
-    // Moving to last slide (generating)
-    goToSlide(currentSlide + 1);
-    startLoading();
-    return;
-  }
-  if (currentSlide >= TOTAL_SLIDES - 1) return;
-  goToSlide(currentSlide + 1);
+function nextSlide(){
+  if(currentSlide===TOTAL_SLIDES-2){goToSlide(currentSlide+1);startLoading();return}
+  if(currentSlide>=TOTAL_SLIDES-1)return;
+  goToSlide(currentSlide+1);
 }
 
-function goToSlide(idx) {
-  const slides = document.querySelectorAll('.ob-slide');
-  slides[currentSlide].classList.add('leaving');
-  slides[currentSlide].classList.remove('active');
-  setTimeout(() => slides[currentSlide - (currentSlide > idx ? -1 : 0)].classList.remove('leaving'), 500);
-
-  const prev = currentSlide;
-  currentSlide = idx;
+function goToSlide(idx){
+  const slides=document.querySelectorAll('.ob-slide');
+  const prev=currentSlide;
+  slides[prev].classList.add('leaving');slides[prev].classList.remove('active');
+  setTimeout(()=>slides[prev].classList.remove('leaving'),450);
+  currentSlide=idx;
   slides[currentSlide].classList.add('active');
-  setTimeout(() => slides[prev].classList.remove('leaving'), 500);
   updateProgress();
 }
 
-function selectOpt(groupId, el) {
-  document.querySelectorAll(`#${groupId} .ob-option`).forEach(o => o.classList.remove('selected'));
+function selectOpt(groupId,el){
+  document.querySelectorAll(`#${groupId} .ob-option`).forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-function validateSlide(slideIdx) {
-  const btn = document.getElementById(`btn${slideIdx}`);
-  if (!btn) return;
-  let valid = false;
-  switch(slideIdx) {
-    case 1: valid = document.getElementById('inp-name').value.trim().length >= 2; break;
-    case 2: { const a = parseInt(document.getElementById('inp-age').value); valid = a >= 10 && a <= 19; break; }
-    case 3: { const f = parseInt(document.getElementById('inp-feet').value); const i = parseInt(document.getElementById('inp-inches').value); valid = f >= 3 && f <= 7 && i >= 0 && i <= 11; break; }
-    case 4: { const w = parseInt(document.getElementById('inp-weight').value); valid = w >= 50 && w <= 350; break; }
-    case 5: { const shoe = document.getElementById('inp-shoe').value; const sex = document.querySelector('#sex-opts .ob-option.selected'); valid = shoe && parseFloat(shoe) >= 3 && !!sex; break; }
-    case 6: { const act = document.querySelector('#act-opts .ob-option.selected'); valid = !!act; break; }
+function validateSlide(idx){
+  const btn=document.getElementById('btn'+idx);if(!btn)return;
+  let v=false;
+  switch(idx){
+    case 1:v=document.getElementById('inp-name').value.trim().length>=2;break;
+    case 2:{const a=parseInt(document.getElementById('inp-age').value);v=a>=10&&a<=19;break}
+    case 3:{const f=parseInt(document.getElementById('inp-feet').value);const i=parseInt(document.getElementById('inp-inches').value);v=f>=3&&f<=7&&i>=0&&i<=11;break}
+    case 4:{const w=parseInt(document.getElementById('inp-weight').value);v=w>=50&&w<=350;break}
+    case 5:{const s=document.getElementById('inp-shoe').value;const sx=document.querySelector('#sex-opts .ob-option.selected');v=!!s&&parseFloat(s)>=3&&!!sx;break}
+    case 6:{const a=document.querySelector('#act-opts .ob-option.selected');v=!!a;break}
   }
-  btn.disabled = !valid;
+  btn.disabled=!v;
 }
 
-function startLoading() {
-  // Collect user data
-  const feet = parseInt(document.getElementById('inp-feet').value);
-  const inches = parseInt(document.getElementById('inp-inches').value);
-  USER = {
-    name: document.getElementById('inp-name').value.trim(),
-    age: parseInt(document.getElementById('inp-age').value),
-    feet, inches,
-    height: feet * 12 + inches, // total inches
-    weight: parseFloat(document.getElementById('inp-weight').value),
-    shoe: parseFloat(document.getElementById('inp-shoe').value),
-    sex: document.querySelector('#sex-opts .ob-option.selected').dataset.val,
-    activity: document.querySelector('#act-opts .ob-option.selected').dataset.val,
+function startLoading(){
+  const f=parseInt(document.getElementById('inp-feet').value);
+  const i=parseInt(document.getElementById('inp-inches').value);
+  USER={
+    name:document.getElementById('inp-name').value.trim(),
+    age:parseInt(document.getElementById('inp-age').value),
+    feet:f,inches:i,height:f*12+i,
+    weight:parseFloat(document.getElementById('inp-weight').value),
+    shoe:parseFloat(document.getElementById('inp-shoe').value),
+    sex:document.querySelector('#sex-opts .ob-option.selected').dataset.val,
+    activity:document.querySelector('#act-opts .ob-option.selected').dataset.val
   };
-
-  const steps = ['step0','step1','step2','step3','step4'];
-  let i = 0;
-  function tick() {
-    if (i > 0) {
-      document.getElementById(steps[i-1]).className = 'done';
-    }
-    if (i < steps.length) {
-      document.getElementById(steps[i]).className = 'active';
-      i++;
-      setTimeout(tick, 700);
-    } else {
-      setTimeout(launchApp, 600);
-    }
+  const steps=['step0','step1','step2','step3','step4'];let si=0;
+  function tick(){
+    if(si>0)document.getElementById(steps[si-1]).className='done';
+    if(si<steps.length){document.getElementById(steps[si]).className='active';si++;setTimeout(tick,700)}
+    else setTimeout(launchApp,600);
   }
   tick();
 }
 
-function launchApp() {
-  STATE.totalPts = STATE.totalPts || 0;
-  STATE.cyclePts = STATE.cyclePts || 0;
-  STATE.virtualInches = STATE.virtualInches || 0;
-  STATE.streak = STATE.streak || 0;
+function launchApp(){
+  STATE.totalPts=STATE.totalPts||0;STATE.cyclePts=STATE.cyclePts||0;
+  STATE.virtualInches=STATE.virtualInches||0;STATE.streak=STATE.streak||0;
   saveState();
-
-  document.getElementById('onboarding').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').style.display='flex';
   initApp();
 }
 
 // ═══════════════════════════════════════════════════════
-//  APP INIT
+//  APP
 // ═══════════════════════════════════════════════════════
-function initApp() {
-  // Welcome message
-  document.getElementById('welcome-name').textContent = USER.name;
-  const hr = new Date().getHours();
-  const greet = hr < 12 ? "Good Morning" : hr < 17 ? "What's Up" : "Evening";
-  document.getElementById('welcome-text').innerHTML = `${greet}, <span id="welcome-name">${USER.name}</span>! 👋`;
-  document.getElementById('welcome-sub').textContent = `Let's keep building, ${USER.name}. Stay consistent.`;
-
-  renderHomeScreen();
-  renderCalendar();
-  renderNutritionScreen();
+function initApp(){
+  const hr=new Date().getHours();
+  const g=hr<12?'Good Morning':hr<17?'What\'s Up':'Good Evening';
+  document.getElementById('welcome-text').innerHTML=`${g}, ${USER.name}! 👋`;
+  document.getElementById('welcome-sub').textContent=`Stay consistent. Every task moves you forward.`;
+  renderHomeScreen();renderCalendar();renderNutritionScreen();
 }
 
-// ═══════════════════════════════════════════════════════
-//  HOME SCREEN
-// ═══════════════════════════════════════════════════════
-function renderHomeScreen() {
-  updatePointsDisplay();
-  renderRuler();
-  renderHomeTaskList();
-  updateTodayProgress();
-  updateBodyFill();
-  updateStreakDisplay();
+function renderHomeScreen(){
+  updatePointsDisplay();renderRuler();renderHomeTaskList();updateTodayProgress();updateBodyFill();
+  document.getElementById('streak-display').textContent=STATE.streak||0;
 }
 
-function updatePointsDisplay() {
-  const cycPts = STATE.cyclePts || 0;
-  const totalPts = STATE.totalPts || 0;
-  document.getElementById('home-pts').textContent = totalPts;
-  document.getElementById('tb-points').textContent = totalPts;
-  document.getElementById('pts-bar').style.width = Math.min(100, cycPts) + '%';
-  document.getElementById('pts-cur').textContent = cycPts;
-
-  const totalIn = USER.height + (STATE.virtualInches || 0);
-  const feet = Math.floor(totalIn / 12);
-  const inches = totalIn % 12;
-  document.getElementById('current-height-display').textContent = `${feet}'${inches}"`;
+function updatePointsDisplay(){
+  const cy=STATE.cyclePts||0,tot=STATE.totalPts||0;
+  document.getElementById('home-pts').textContent=tot;
+  document.getElementById('tb-points').textContent=tot;
+  document.getElementById('pts-bar').style.width=Math.min(100,cy)+'%';
+  document.getElementById('pts-cur').textContent=cy;
+  const ti=USER.height+(STATE.virtualInches||0);
+  document.getElementById('current-height-display').textContent=`${Math.floor(ti/12)}'${ti%12}"`;
 }
 
-function updateBodyFill() {
-  const pct = Math.min(100, (STATE.cyclePts || 0));
-  const totalH = 310;
-  const fillH = totalH * (pct / 100);
-  const y = totalH - fillH;
-  document.getElementById('body-fill-rect').setAttribute('y', y);
-  document.getElementById('body-fill-rect').setAttribute('height', fillH);
+function updateBodyFill(){
+  const pct=Math.min(100,STATE.cyclePts||0);
+  const h=310*(pct/100);
+  document.getElementById('body-fill-rect').setAttribute('y',310-h);
+  document.getElementById('body-fill-rect').setAttribute('height',h);
 }
 
-function renderRuler() {
-  const svg = document.getElementById('ruler-svg');
-  const totalIn = USER.height + (STATE.virtualInches || 0);
-  const startIn = totalIn - 1;
-  const endIn = totalIn + 5;
-  const svgH = 260;
-  const range = endIn - startIn;
-  const inchPx = svgH / range;
-
-  let html = '';
-  for (let i = startIn; i <= endIn; i++) {
-    const y = svgH - (i - startIn) * inchPx;
-    const ft = Math.floor(i/12);
-    const inc = i % 12;
-    const label = inc === 0 ? `${ft}'` : `${inc}"`;
-    const isCurrent = i === totalIn;
-    html += `<line x1="14" y1="${y}" x2="${isCurrent?2:8}" y2="${y}" stroke="${isCurrent?'#00d4ff':'rgba(100,116,139,0.5)'}" stroke-width="${isCurrent?2:1}"/>`;
-    html += `<text x="16" y="${y+4}" font-size="${isCurrent?9:8}" fill="${isCurrent?'#00d4ff':'rgba(100,116,139,0.6)'}" font-family="monospace" font-weight="${isCurrent?'bold':'normal'}">${label}</text>`;
-    if (isCurrent) {
-      html += `<circle cx="5" cy="${y}" r="4" fill="#00d4ff" opacity="0.9"/>`;
-    }
+function renderRuler(){
+  const svg=document.getElementById('ruler-svg');
+  const ti=USER.height+(STATE.virtualInches||0);
+  const start=ti-1,end=ti+5,svgH=248,range=end-start,px=svgH/range;
+  let html='';
+  for(let i=start;i<=end;i++){
+    const y=svgH-(i-start)*px;
+    const ft=Math.floor(i/12),inc=i%12;
+    const label=inc===0?`${ft}'`:`${inc}"`;
+    const cur=i===ti;
+    html+=`<line x1="${cur?2:8}" y1="${y}" x2="14" y2="${y}" stroke="${cur?'#fff':'rgba(255,255,255,0.2)'}" stroke-width="${cur?2:1}"/>`;
+    html+=`<text x="16" y="${y+4}" font-size="${cur?9:8}" fill="${cur?'#fff':'rgba(255,255,255,0.3)'}" font-family="Inter,sans-serif" font-weight="${cur?'700':'400'}">${label}</text>`;
+    if(cur)html+=`<circle cx="5" cy="${y}" r="3.5" fill="#fff"/>`;
   }
-  html += `<line x1="14" y1="0" x2="14" y2="${svgH}" stroke="rgba(100,116,139,0.3)" stroke-width="1"/>`;
-  svg.innerHTML = html;
+  html+=`<line x1="14" y1="0" x2="14" y2="${svgH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  svg.innerHTML=html;
 }
 
-function renderHomeTaskList() {
-  const dateKey = todayKey();
-  const allTasks = buildDailyTasks(USER, dateKey);
-  const checked = getTasksForDate(dateKey);
-  const container = document.getElementById('home-tasks');
-
-  // Show first 6 tasks as quick preview
-  const preview = allTasks.slice(0, 6);
-  container.innerHTML = preview.map(t => `
-    <div class="quick-task-item ${checked[t.id] ? 'checked' : ''}" onclick="toggleHomeTask('${t.id}')">
-      <div class="task-check"><span class="task-check-mark">✓</span></div>
-      <span class="task-text">${t.name}</span>
-      <span class="task-category cat-${t.cat}">${t.cat}</span>
-    </div>
-  `).join('');
+function renderHomeTaskList(){
+  const dk=todayKey(),tasks=buildDailyTasks(USER,dk),checked=getTasksForDate(dk);
+  document.getElementById('home-tasks').innerHTML=tasks.slice(0,6).map(t=>`
+    <div class="home-task-item ${checked[t.id]?'checked':''}" onclick="toggleHomeTask('${t.id}')">
+      <div class="t-check"><span class="t-checkmark">✓</span></div>
+      <span class="t-name">${t.name}</span>
+      <span class="t-badge badge-${t.cat}">${t.cat}</span>
+    </div>`).join('');
 }
 
-function toggleHomeTask(taskId) {
-  const dateKey = todayKey();
-  const checked = getTasksForDate(dateKey);
-  const wasChecked = !!checked[taskId];
-  checked[taskId] = !wasChecked;
-  saveTasksForDate(dateKey, checked);
-
-  if (!wasChecked) {
-    // Award point
-    STATE.totalPts = (STATE.totalPts || 0) + 1;
-    STATE.cyclePts = (STATE.cyclePts || 0) + 1;
-    if (STATE.cyclePts >= 100) {
-      // INCH MILESTONE
-      STATE.cyclePts = 0;
-      STATE.virtualInches = (STATE.virtualInches || 0) + 1;
-      showGrowToast();
-    }
-  } else {
-    STATE.totalPts = Math.max(0, (STATE.totalPts || 0) - 1);
-    STATE.cyclePts = Math.max(0, (STATE.cyclePts || 0) - 1);
-  }
-  saveState();
-  renderHomeScreen();
-  updateCalDayStatus(dateKey);
+function toggleHomeTask(id){
+  const dk=todayKey(),checked=getTasksForDate(dk),was=!!checked[id];
+  checked[id]=!was;saveTasksForDate(dk,checked);
+  if(!was){STATE.totalPts=(STATE.totalPts||0)+1;STATE.cyclePts=(STATE.cyclePts||0)+1;
+    if(STATE.cyclePts>=100){STATE.cyclePts=0;STATE.virtualInches=(STATE.virtualInches||0)+1;showGrowToast()}}
+  else{STATE.totalPts=Math.max(0,(STATE.totalPts||0)-1);STATE.cyclePts=Math.max(0,(STATE.cyclePts||0)-1)}
+  saveState();renderHomeScreen();renderCalendar();
 }
 
-function updateTodayProgress() {
-  const dateKey = todayKey();
-  const tasks = buildDailyTasks(USER, dateKey);
-  const checked = getTasksForDate(dateKey);
-  const done = tasks.filter(t => checked[t.id]).length;
-  const total = tasks.length;
-  const pct = total > 0 ? (done / total) * 100 : 0;
-  document.getElementById('today-bar').style.width = pct + '%';
-  document.getElementById('today-pct').textContent = `${done} / ${total} tasks`;
+function updateTodayProgress(){
+  const dk=todayKey(),tasks=buildDailyTasks(USER,dk),checked=getTasksForDate(dk);
+  const done=tasks.filter(t=>checked[t.id]).length,tot=tasks.length;
+  document.getElementById('today-bar').style.width=(tot>0?(done/tot)*100:0)+'%';
+  document.getElementById('today-pct').textContent=`${done} / ${tot}`;
 }
 
-function updateStreakDisplay() {
-  document.getElementById('streak-display').textContent = STATE.streak || 0;
-}
-
-function showGrowToast() {
-  const t = document.getElementById('grow-toast');
-  t.classList.add('show');
-  document.querySelector('#body-svg').classList.add('body-growing');
-  setTimeout(() => { t.classList.remove('show'); document.querySelector('#body-svg').classList.remove('body-growing'); }, 3000);
+function showGrowToast(){
+  const t=document.getElementById('grow-toast');t.classList.add('show');
+  document.getElementById('body-svg').style.transition='transform .5s ease';
+  document.getElementById('body-svg').style.transform='scale(1.04)';
+  setTimeout(()=>{document.getElementById('body-svg').style.transform='scale(1)';},500);
+  setTimeout(()=>t.classList.remove('show'),3000);
   renderRuler();
 }
 
 // ═══════════════════════════════════════════════════════
-//  CALENDAR SCREEN
+//  CALENDAR
 // ═══════════════════════════════════════════════════════
-function renderCalendar() {
-  const year = calViewDate.getFullYear();
-  const month = calViewDate.getMonth();
-  const label = calViewDate.toLocaleDateString('en-US', {month:'long',year:'numeric'});
-  document.getElementById('cal-month-label').textContent = label;
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const today = new Date();
-  const todayStr = todayKey();
-
-  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  let html = days.map(d => `<div class="cal-day-label">${d}</div>`).join('');
-
-  // Empty cells
-  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = dateKey === todayStr;
-    const isSelected = dateKey === selectedCalDate;
-    const checked = getTasksForDate(dateKey);
-    const checkedCount = Object.values(checked).filter(Boolean).length;
-    const totalTasks = USER ? buildDailyTasks(USER, dateKey).length : 0;
-    const isComplete = checkedCount > 0 && checkedCount >= totalTasks;
-    const isPartial = checkedCount > 0 && !isComplete;
-
-    let cls = 'cal-day';
-    if (isToday) cls += ' today';
-    if (isSelected && !isToday) cls += ' selected';
-    if (isComplete) cls += ' completed';
-    if (isPartial) cls += ' partial';
-
-    html += `<div class="${cls}" onclick="selectCalDay('${dateKey}')">
-      ${d}
-      ${(isComplete || isPartial) ? '<div class="cal-dot"></div>' : ''}
-    </div>`;
+function renderCalendar(){
+  const yr=calViewDate.getFullYear(),mo=calViewDate.getMonth();
+  document.getElementById('cal-month-label').textContent=calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const firstDay=new Date(yr,mo,1).getDay(),days=new Date(yr,mo+1,0).getDate(),tStr=todayKey();
+  const dl=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  let html=dl.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++)html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const dk=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isT=dk===tStr,isSel=dk===selectedCalDate;
+    const ch=getTasksForDate(dk),cnt=Object.values(ch).filter(Boolean).length;
+    const tot=USER?buildDailyTasks(USER,dk).length:0;
+    const isC=cnt>0&&cnt>=tot,isP=cnt>0&&!isC;
+    let cls='cal-day';
+    if(isT)cls+=' today';else if(isSel)cls+=' selected';
+    if(isC)cls+=' completed';if(isP)cls+=' partial';
+    html+=`<div class="${cls}" onclick="selectCalDay('${dk}')">${d}${(isC||isP)?'<div class="cal-dot"></div>':''}</div>`;
   }
-
-  document.getElementById('cal-grid').innerHTML = html;
+  document.getElementById('cal-grid').innerHTML=html;
   renderCalDayTasks(selectedCalDate);
 }
 
-function updateCalDayStatus(dateKey) {
-  renderCalendar();
-}
+function selectCalDay(dk){selectedCalDate=dk;renderCalendar()}
+function changeMonth(dir){calViewDate.setMonth(calViewDate.getMonth()+dir);renderCalendar()}
 
-function selectCalDay(dateKey) {
-  selectedCalDate = dateKey;
-  renderCalendar();
-}
-
-function changeMonth(dir) {
-  calViewDate.setMonth(calViewDate.getMonth() + dir);
-  renderCalendar();
-}
-
-function renderCalDayTasks(dateKey) {
-  const d = new Date(dateKey + 'T12:00:00');
-  const label = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  document.getElementById('cal-selected-label').textContent = label.toUpperCase();
-
-  const tasks = USER ? buildDailyTasks(USER, dateKey) : [];
-  const checked = getTasksForDate(dateKey);
-
-  const groups = {
-    nutrition: {label:'Nutrition', color:'var(--green)', emoji:'🥗', tasks:[]},
-    supplement: {label:'Supplements', color:'var(--purple)', emoji:'💊', tasks:[]},
-    stretch: {label:'Stretches & Exercise', color:'var(--cyan)', emoji:'🤸', tasks:[]},
-    habit: {label:'Habits & Sleep', color:'var(--orange)', emoji:'⚡', tasks:[]}
+function renderCalDayTasks(dk){
+  const d=new Date(dk+'T12:00:00');
+  document.getElementById('cal-selected-label').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
+  const tasks=USER?buildDailyTasks(USER,dk):[],checked=getTasksForDate(dk);
+  const groups={
+    nutrition:{label:'Nutrition',tasks:[]},
+    supplement:{label:'Supplements',tasks:[]},
+    stretch:{label:'Stretches',tasks:[]},
+    habit:{label:'Habits & Sleep',tasks:[]}
   };
-  tasks.forEach(t => groups[t.cat]?.tasks.push(t));
-
-  document.getElementById('cal-tasks').innerHTML = Object.values(groups).filter(g => g.tasks.length > 0).map(g => `
+  tasks.forEach(t=>groups[t.cat]?.tasks.push(t));
+  document.getElementById('cal-tasks').innerHTML=Object.values(groups).filter(g=>g.tasks.length>0).map(g=>`
     <div class="task-group">
-      <div class="task-group-label" style="color:${g.color}">${g.emoji} ${g.label}</div>
-      ${g.tasks.map(t => `
-        <div class="task-item ${checked[t.id] ? 'checked' : ''}" onclick="toggleCalTask('${dateKey}','${t.id}')">
-          <div class="task-check"><span class="task-check-mark" style="color:#fff;font-size:11px">✓</span></div>
-          <div class="task-info">
-            <div class="t-name">${t.name}</div>
-            <div class="t-detail">${t.detail}</div>
-          </div>
-          <div class="task-pts-badge">+1 PT</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+      <div class="task-group-label"><div class="group-dot"></div>${g.label}</div>
+      ${g.tasks.map(t=>`
+        <div class="task-item ${checked[t.id]?'checked':''}" onclick="toggleCalTask('${dk}','${t.id}')">
+          <div class="t-check"><span class="t-checkmark" style="color:#000;font-size:11px;font-weight:700;opacity:${checked[t.id]?1:0}">✓</span></div>
+          <div class="t-info"><div class="t-name">${t.name}</div><div class="t-detail">${t.detail}</div></div>
+          <div class="t-pts">+1</div>
+        </div>`).join('')}
+    </div>`).join('');
 }
 
-function toggleCalTask(dateKey, taskId) {
-  const checked = getTasksForDate(dateKey);
-  const wasChecked = !!checked[taskId];
-  checked[taskId] = !wasChecked;
-  saveTasksForDate(dateKey, checked);
-
-  const isToday = dateKey === todayKey();
-  if (isToday) {
-    if (!wasChecked) {
-      STATE.totalPts = (STATE.totalPts || 0) + 1;
-      STATE.cyclePts = (STATE.cyclePts || 0) + 1;
-      if (STATE.cyclePts >= 100) {
-        STATE.cyclePts = 0;
-        STATE.virtualInches = (STATE.virtualInches || 0) + 1;
-        showGrowToast();
-      }
-    } else {
-      STATE.totalPts = Math.max(0, (STATE.totalPts || 0) - 1);
-      STATE.cyclePts = Math.max(0, (STATE.cyclePts || 0) - 1);
-    }
-    saveState();
-    renderHomeScreen();
+function toggleCalTask(dk,id){
+  const checked=getTasksForDate(dk),was=!!checked[id];
+  checked[id]=!was;saveTasksForDate(dk,checked);
+  if(dk===todayKey()){
+    if(!was){STATE.totalPts=(STATE.totalPts||0)+1;STATE.cyclePts=(STATE.cyclePts||0)+1;
+      if(STATE.cyclePts>=100){STATE.cyclePts=0;STATE.virtualInches=(STATE.virtualInches||0)+1;showGrowToast()}}
+    else{STATE.totalPts=Math.max(0,(STATE.totalPts||0)-1);STATE.cyclePts=Math.max(0,(STATE.cyclePts||0)-1)}
+    saveState();renderHomeScreen();
   }
-  renderCalDayTasks(dateKey);
-  renderCalendar();
+  renderCalDayTasks(dk);renderCalendar();
 }
 
 // ═══════════════════════════════════════════════════════
-//  NUTRITION SCREEN
+//  NUTRITION
 // ═══════════════════════════════════════════════════════
-function renderNutritionScreen() {
-  if (!USER) return;
-  const calGoal = calcCalories(USER);
-  const proteinGoal = Math.round(USER.weight * 0.85);
-  const carbGoal = Math.round((calGoal * 0.40) / 4);
-  const fatGoal = Math.round((calGoal * 0.28) / 9);
+function renderNutritionScreen(){
+  if(!USER)return;
+  const cal=calcCalories(USER),pro=Math.round(USER.weight*.85);
+  const carb=Math.round((cal*.40)/4),fat=Math.round((cal*.28)/9);
+  document.getElementById('nut-cal').textContent=cal;
+  document.getElementById('nut-pro').textContent=pro;
+  document.getElementById('nut-carb').textContent=carb;
+  document.getElementById('nut-fat').textContent=fat;
 
-  document.getElementById('nut-cal').textContent = calGoal;
-  document.getElementById('nut-pro').textContent = proteinGoal;
-  document.getElementById('nut-carb').textContent = carbGoal;
-  document.getElementById('nut-fat').textContent = fatGoal;
-
-  // Today's meal plan (rotate by day of year)
-  const doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-  const meal = MEALS[doy % 7];
-  const mealOrder = [
-    {key:'breakfast', label:'Breakfast', time:'7:00 – 9:00 AM'},
-    {key:'lunch', label:'Lunch', time:'12:00 – 1:30 PM'},
-    {key:'snack', label:'Snack', time:'3:00 – 4:00 PM'},
-    {key:'dinner', label:'Dinner', time:'6:00 – 8:00 PM'}
-  ];
-
-  document.getElementById('meal-cards').innerHTML = mealOrder.map(({key,label,time}) => {
-    const m = meal[key];
-    return `
-    <div class="meal-card" id="meal-${key}">
-      <div class="meal-header" onclick="toggleMeal('${key}')">
-        <div class="meal-header-left">
-          <span class="meal-icon">${m.icon}</span>
-          <div>
-            <div class="meal-name">${label}: ${m.name}</div>
-            <div class="meal-macros">${time} · ${m.cal} kcal · ${m.protein}g protein</div>
-          </div>
+  const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
+  const meal=MEALS[doy%7];
+  const order=[{k:'breakfast',l:'Breakfast',t:'7–9 AM'},{k:'lunch',l:'Lunch',t:'12–1:30 PM'},{k:'snack',l:'Snack',t:'3–4 PM'},{k:'dinner',l:'Dinner',t:'6–8 PM'}];
+  document.getElementById('meal-cards').innerHTML=order.map(({k,l,t})=>{const m=meal[k];return`
+    <div class="meal-card" id="meal-${k}">
+      <div class="meal-hdr" onclick="toggleMeal('${k}')">
+        <div class="meal-hdr-left"><span class="meal-icon">${m.icon}</span>
+          <div><div class="meal-title">${l}: ${m.name}</div><div class="meal-meta">${t} · ${m.cal} kcal · ${m.protein}g protein</div></div>
         </div>
         <span class="meal-chevron">▾</span>
       </div>
-      <div class="meal-body">
-        <div class="meal-items">
-          ${m.items.map(item => `<div class="meal-item-row">${item}</div>`).join('')}
-          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:16px">
-            <span style="font-size:12px;color:var(--cyan)">Protein: <b>${m.protein}g</b></span>
-            <span style="font-size:12px;color:var(--purple)">Carbs: <b>${m.carbs}g</b></span>
-            <span style="font-size:12px;color:var(--green)">Fat: <b>${m.fat}g</b></span>
-          </div>
+      <div class="meal-body"><div class="meal-items-wrap">
+        ${m.items.map(i=>`<div class="meal-item">${i}</div>`).join('')}
+        <div class="meal-macros-row">
+          <span>Protein: <b>${m.protein}g</b></span>
+          <span>Carbs: <b>${m.carbs}g</b></span>
+          <span>Fat: <b>${m.fat}g</b></span>
         </div>
-      </div>
-    </div>`;
-  }).join('');
+      </div></div>
+    </div>`}).join('');
 
-  // Supplements
-  document.getElementById('supp-grid').innerHTML = SUPPLEMENTS.map(s => `
+  document.getElementById('supp-grid').innerHTML=SUPPLEMENTS.map(s=>`
     <div class="supp-card">
       <span class="supp-icon">${s.icon}</span>
-      <div>
-        <div class="supp-name">${s.name}</div>
-        <div class="supp-dose">${s.dose}</div>
-        <div class="supp-note">${s.note}</div>
-      </div>
-    </div>
-  `).join('');
+      <div><div class="supp-name">${s.name}</div><div class="supp-dose">${s.dose}</div><div class="supp-note">${s.note}</div></div>
+    </div>`).join('');
 
-  // Water tracker
-  const wKey = todayKey();
-  const waterCount = STATE.water?.[wKey] || 0;
-  document.getElementById('water-count').textContent = `${waterCount}/8`;
-  document.getElementById('water-cups').innerHTML = Array.from({length:8},(_,i) => `
-    <div class="water-cup ${i < waterCount ? 'filled' : ''}" onclick="toggleWater(${i})">💧</div>
-  `).join('');
+  const wk=todayKey(),wc=STATE.water?.[wk]||0;
+  document.getElementById('water-count').textContent=`${wc}/8`;
+  document.getElementById('water-cups').innerHTML=Array.from({length:8},(_,i)=>`
+    <div class="w-cup ${i<wc?'filled':''}" onclick="toggleWater(${i})">💧</div>`).join('');
 
-  // Nutrition tips
-  const tips = [
-    `• Consume <span style="color:var(--cyan)">protein within 30 minutes of waking</span> to activate muscle protein synthesis for the day.`,
-    `• Your protein target is <span style="color:var(--cyan)">${proteinGoal}g/day</span> (${Math.round(USER.weight * 0.85 / 4)} servings of ~${Math.round(USER.weight * 0.85 / 4 * 25)}g each).`,
-    `• Eat <span style="color:var(--green)">calcium-rich foods</span> (milk, Greek yogurt, fortified OJ) before growth plates close — usually by age 18-21.`,
-    `• <span style="color:var(--purple)">Avoid caffeine</span> before sleep — it reduces deep sleep duration where 80% of growth hormone is released.`,
-    `• <span style="color:var(--orange)">Don't skip breakfast</span> — growth hormone levels peak overnight and breakfast protein prevents muscle catabolism.`,
-    `• <span style="color:var(--cyan)">Zinc deficiency is common in teens</span> and directly limits growth. Include red meat, pumpkin seeds, and legumes.`,
+  const tips=[
+    {b:'Protein within 30 min of waking',t:`activates muscle protein synthesis. Your target: ${pro}g/day.`},
+    {b:'Eat calcium-rich foods',t:'before growth plates close (usually age 18–21). Dairy, leafy greens, fortified foods.'},
+    {b:'Avoid caffeine before sleep',t:'— it reduces deep sleep where 80% of growth hormone is released.'},
+    {b:'Never skip breakfast',t:'— GH peaks overnight and morning protein prevents muscle catabolism.'},
+    {b:'Zinc deficiency is common in teens',t:'and directly limits growth. Red meat, pumpkin seeds, legumes.'},
+    {b:'Hydration keeps spinal discs plump',t:'— dehydrated discs compress and reduce your standing height.'},
   ];
-  document.getElementById('nut-tips').innerHTML = tips.join('<br>');
+  document.getElementById('tips-card').innerHTML=tips.map(tip=>`
+    <div class="tip-row"><div class="tip-dot"></div><div class="tip-text"><b>${tip.b}</b> ${tip.t}</div></div>`).join('');
 }
 
-function toggleMeal(key) {
-  document.getElementById(`meal-${key}`).classList.toggle('open');
-}
-
-function toggleWater(idx) {
-  const wKey = todayKey();
-  if (!STATE.water) STATE.water = {};
-  const cur = STATE.water[wKey] || 0;
-  STATE.water[wKey] = cur > idx ? idx : idx + 1;
-  saveState();
-  renderNutritionScreen();
+function toggleMeal(k){document.getElementById('meal-'+k).classList.toggle('open')}
+function toggleWater(idx){
+  const wk=todayKey();if(!STATE.water)STATE.water={};
+  const cur=STATE.water[wk]||0;STATE.water[wk]=cur>idx?idx:idx+1;
+  saveState();renderNutritionScreen();
 }
 
 // ═══════════════════════════════════════════════════════
-//  NAVIGATION
+//  NAV
 // ═══════════════════════════════════════════════════════
-function navTo(screen) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`screen-${screen}`).classList.add('active');
-  document.getElementById(`nav-${screen}`).classList.add('active');
-  if (screen === 'home') renderHomeScreen();
-  if (screen === 'calendar') renderCalendar();
-  if (screen === 'nutrition') renderNutritionScreen();
+function navTo(s){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  document.getElementById('nav-'+s).classList.add('active');
+  if(s==='home')renderHomeScreen();
+  if(s==='calendar')renderCalendar();
+  if(s==='nutrition')renderNutritionScreen();
 }
 
 // ═══════════════════════════════════════════════════════
 //  BOOT
 // ═══════════════════════════════════════════════════════
 loadState();
-if (USER) {
-  // Returning user - skip onboarding
-  document.getElementById('onboarding').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+if(USER){
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').style.display='flex';
   initApp();
 }
-// Update streak
-(function checkStreak() {
-  if (!USER) return;
-  const tk = todayKey();
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-  const yk = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-  const yTasks = getTasksForDate(yk);
-  const yTotal = buildDailyTasks(USER, yk).length;
-  const yDone = Object.values(yTasks).filter(Boolean).length;
-  if (yDone >= yTotal * 0.8 && STATE.lastActive !== tk) {
-    if (STATE.lastActive === yk) STATE.streak = (STATE.streak || 0) + 1;
-    else if (!STATE.lastActive) STATE.streak = 1;
-    else STATE.streak = 1;
-    STATE.lastActive = tk;
-    saveState();
+(function checkStreak(){
+  if(!USER)return;
+  const tk=todayKey();
+  const yd=new Date();yd.setDate(yd.getDate()-1);
+  const yk=`${yd.getFullYear()}-${String(yd.getMonth()+1).padStart(2,'0')}-${String(yd.getDate()).padStart(2,'0')}`;
+  const yt=getTasksForDate(yk),yto=USER?buildDailyTasks(USER,yk).length:0;
+  const yd2=Object.values(yt).filter(Boolean).length;
+  if(yd2>=yto*.8&&STATE.lastActive!==tk){
+    STATE.streak=STATE.lastActive===yk?(STATE.streak||0)+1:1;
+    STATE.lastActive=tk;saveState();
   }
 })();
 </script>

@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vertical Lab — Jump Training</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a24;
+      --surface2: #1e2333;
+      --border: #2a3050;
+      --accent: #4f7fff;
+      --accent2: #ff6b35;
+      --accent3: #34d399;
+      --text: #e8ecf4;
+      --muted: #7a82a0;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #0d0f14 0%, #1a1f30 50%, #0d1220 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+    }
+    nav { display: flex; gap: 4px; }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    nav button:hover { color: var(--text); background: var(--surface2); }
+    nav button.active { color: var(--accent); background: rgba(79,127,255,0.12); }
+
+    /* ── MAIN ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 56px 0 48px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(79,127,255,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(79,127,255,0.3);
+      border-radius: 100px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 520px;
+      margin: 0 auto 32px;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── SECTION TABS ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { border-color: var(--accent); color: var(--text); }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tab-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .tab-btn[data-tab="plyometrics"] .dot { background: var(--accent2); }
+    .tab-btn[data-tab="weightlifting"] .dot { background: var(--accent); }
+    .tab-btn[data-tab="stretches"] .dot { background: var(--accent3); }
+    .tab-btn[data-tab="program"] .dot { background: #c084fc; }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      margin-bottom: 28px;
+    }
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .section-header p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── EXERCISE GRID ── */
+    .exercise-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .exercise-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+      cursor: pointer;
+    }
+    .exercise-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .card-banner {
+      height: 6px;
+    }
+    .card-body { padding: 20px; }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .card-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 100px;
+      flex-shrink: 0;
+    }
+    .badge-explosive { background: rgba(255,107,53,0.15); color: var(--accent2); }
+    .badge-strength  { background: rgba(79,127,255,0.15); color: var(--accent); }
+    .badge-mobility  { background: rgba(52,211,153,0.15); color: var(--accent3); }
+    .badge-beginner  { background: rgba(52,211,153,0.1);  color: var(--accent3); }
+    .badge-intermediate { background: rgba(251,191,36,0.1); color: #fbbf24; }
+    .badge-advanced  { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+    .card-desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.6; }
+
+    .card-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .meta-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .meta-pill .icon { font-size: 0.85rem; }
+
+    .card-muscles {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .muscle-tag {
+      background: var(--surface2);
+      border-radius: 100px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      place-items: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: grid; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 24px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .modal-header h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .modal-close {
+      background: var(--surface2);
+      border: none;
+      color: var(--muted);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { color: var(--text); background: var(--border); }
+    .modal-body { padding: 20px 24px 24px; }
+    .modal-section { margin-bottom: 20px; }
+    .modal-section h4 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .steps { display: flex; flex-direction: column; gap: 8px; }
+    .step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      background: rgba(79,127,255,0.2);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step p { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+    .tips { display: flex; flex-direction: column; gap: 6px; }
+    .tip {
+      display: flex;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .tip::before { content: "→"; color: var(--accent); flex-shrink: 0; }
+
+    /* ── PROGRAM VIEW ── */
+    .program-week {
+      margin-bottom: 32px;
+    }
+    .week-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .program-days { display: flex; flex-direction: column; gap: 12px; }
+    .program-day {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .day-header {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .day-header:hover { background: var(--surface2); }
+    .day-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .day-focus {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .day-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .day-tag.rest { background: rgba(122,130,160,0.1); color: var(--muted); }
+    .day-tag.training { background: rgba(79,127,255,0.12); color: var(--accent); }
+    .day-exercises {
+      padding: 0 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      display: none;
+    }
+    .day-exercises.open { display: flex; }
+    .program-ex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .program-ex-name { font-weight: 600; }
+    .program-ex-spec { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── TIMER ── */
+    .timer-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: none;
+      gap: 14px;
+      align-items: center;
+      z-index: 150;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      min-width: 220px;
+    }
+    .timer-bar.open { display: flex; }
+    .timer-display {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+    .timer-controls { display: flex; gap: 6px; }
+    .timer-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      width: 32px; height: 32px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+    }
+    .timer-btn:hover { background: var(--border); }
+    .timer-btn.start-btn { background: var(--accent); border-color: var(--accent); color: #fff; width: 64px; font-weight: 700; font-size: 0.8rem; }
+    .timer-btn.start-btn:hover { background: #3b6de8; }
+    .timer-label { font-size: 0.75rem; color: var(--muted); }
+
+    .open-timer-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(79,127,255,0.4);
+      transition: all 0.15s;
+      z-index: 149;
+    }
+    .open-timer-btn:hover { background: #3b6de8; transform: translateY(-1px); }
+
+    /* ── SECTIONS ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { display: none; }
+      .hero { padding: 32px 0 32px; }
+      .hero-stats { gap: 20px; }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      Vertical Lab
+    </div>
+    <nav id="headerNav">
+      <button class="active" onclick="showView('home')">Home</button>
+      <button onclick="showView('exercises')">Exercises</button>
+      <button onclick="showView('program')">Program</button>
+    </nav>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HOME VIEW -->
+  <div class="view active" id="view-home">
+    <div class="hero">
+      <div class="hero-badge">Science-Based Jump Training</div>
+      <h1>Train Smarter.<br /><span>Jump Higher.</span></h1>
+      <p>A complete vertical jump program built on plyometrics, strength training, and mobility work — everything you need to add serious inches to your leap.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-val">24+</div><div class="stat-label">Exercises</div></div>
+        <div class="stat"><div class="stat-val">3</div><div class="stat-label">Training Modalities</div></div>
+        <div class="stat"><div class="stat-val">8wk</div><div class="stat-label">Structured Program</div></div>
+        <div class="stat"><div class="stat-val">4–6"</div><div class="stat-label">Avg. Gain Potential</div></div>
+      </div>
+    </div>
+
+    <div class="tabs" style="justify-content:center; margin-bottom:40px;">
+      <button class="tab-btn" onclick="showView('exercises'); setTab('plyometrics')">
+        <span class="dot"></span> Plyometrics
+      </button>
+      <button class="tab-btn" onclick="showView('exercises'); setTab('weightlifting')">
+        <span class="dot" style="background:var(--accent)"></span> Weightlifting
+      </button>
+      <button class="tab-btn" onclick="showView('exercises'); setTab('stretches')">
+        <span class="dot" style="background:var(--accent3)"></span> Stretches
+      </button>
+      <button class="tab-btn" onclick="showView('program')">
+        <span class="dot" style="background:#c084fc"></span> 8-Week Program
+      </button>
+    </div>
+
+    <!-- Quick-tip cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px;">
+        <div style="font-size:1.5rem; margin-bottom:10px;">🦵</div>
+        <div style="font-weight:700; margin-bottom:6px;">Explosive Power</div>
+        <div style="color:var(--muted); font-size:0.85rem; line-height:1.6;">Plyometric exercises train your fast-twitch muscle fibers and improve the stretch-shortening cycle — the key to a higher jump.</div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px;">
+        <div style="font-size:1.5rem; margin-bottom:10px;">🏋️</div>
+        <div style="font-weight:700; margin-bottom:6px;">Strength Foundation</div>
+        <div style="color:var(--muted); font-size:0.85rem; line-height:1.6;">Heavier squats and deadlifts build the raw force output your legs need. More strength = more power when you need it most.</div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px;">
+        <div style="font-size:1.5rem; margin-bottom:10px;">🧘</div>
+        <div style="font-weight:700; margin-bottom:6px;">Mobility & Recovery</div>
+        <div style="color:var(--muted); font-size:0.85rem; line-height:1.6;">Hip flexor and ankle mobility are often the hidden limiters of vertical. Daily stretching keeps you injury-free and unlocks range of motion.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES VIEW -->
+  <div class="view" id="view-exercises">
+    <div class="tabs" id="exerciseTabs">
+      <button class="tab-btn active" data-tab="plyometrics" onclick="setTab('plyometrics')"><span class="dot"></span>Plyometrics</button>
+      <button class="tab-btn" data-tab="weightlifting" onclick="setTab('weightlifting')"><span class="dot"></span>Weightlifting</button>
+      <button class="tab-btn" data-tab="stretches" onclick="setTab('stretches')"><span class="dot"></span>Stretches</button>
+    </div>
+
+    <div id="exerciseContent"></div>
+  </div>
+
+  <!-- PROGRAM VIEW -->
+  <div class="view" id="view-program">
+    <div class="section-header">
+      <h2>8-Week Vertical Jump Program</h2>
+      <p>Progressive overload split across three training days per week. Click any day to expand the workout.</p>
+    </div>
+    <div id="programContent"></div>
+  </div>
+
+</main>
+
+<!-- EXERCISE MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- REST TIMER -->
+<button class="open-timer-btn" id="openTimerBtn" onclick="openTimer()">⏱ Rest Timer</button>
+<div class="timer-bar" id="timerBar">
+  <div>
+    <div class="timer-label">Rest Timer</div>
+    <div class="timer-display" id="timerDisplay">1:30</div>
+  </div>
+  <div class="timer-controls">
+    <button class="timer-btn start-btn" id="timerStartBtn" onclick="toggleTimer()">Start</button>
+    <button class="timer-btn" onclick="resetTimer()">↺</button>
+    <button class="timer-btn" onclick="closeTimerBar()">✕</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const EXERCISES = {
+  plyometrics: {
+    label: "Plyometrics",
+    color: "#ff6b35",
+    desc: "Explosive, reactive movements that develop power, speed, and the stretch-shortening cycle required for a bigger jump.",
+    items: [
+      {
+        name: "Depth Jump",
+        badge: "explosive",
+        level: "advanced",
+        sets: "4 sets",
+        reps: "5 reps",
+        rest: "2 min",
+        desc: "Step off a box, land, and immediately explode upward into a max-height jump. Trains reactive strength — the key to turning force absorption into upward propulsion.",
+        muscles: ["Quadriceps", "Glutes", "Calves", "Hamstrings"],
+        steps: [
+          "Stand on a 12–24\" plyo box at the edge.",
+          "Step (don't jump) off the box, landing on both feet simultaneously.",
+          "Absorb the landing with a slight knee bend, then immediately explode upward as fast as possible.",
+          "Reach your arms overhead at peak height.",
+          "Land softly, step back on the box, and repeat."
+        ],
+        tips: [
+          "Minimize ground contact time — think of the floor as a hot surface.",
+          "Start with a lower box (12\") before progressing.",
+          "Do not do depth jumps when fatigued — quality over quantity."
+        ]
+      },
+      {
+        name: "Box Jump",
+        badge: "explosive",
+        level: "beginner",
+        sets: "4 sets",
+        reps: "6 reps",
+        rest: "90 sec",
+        desc: "Jump onto a raised platform with maximum effort. Great for building explosive power and training the mind-muscle connection for vertical jump mechanics.",
+        muscles: ["Quadriceps", "Glutes", "Calves"],
+        steps: [
+          "Stand in front of a sturdy box (18–30\") with feet shoulder-width apart.",
+          "Swing arms back and dip into a quarter squat.",
+          "Explode upward, driving arms forward, and land softly on top of the box.",
+          "Stand tall, then step (not jump) back down.",
+          "Reset and repeat."
+        ],
+        tips: [
+          "Land with soft knees — never fully extended.",
+          "Always step down to protect your Achilles tendon.",
+          "Progress box height only when landings are clean and controlled."
+        ]
+      },
+      {
+        name: "Broad Jump",
+        badge: "explosive",
+        level: "beginner",
+        sets: "4 sets",
+        reps: "6 reps",
+        rest: "90 sec",
+        desc: "A horizontal jump that reinforces triple extension (ankle, knee, hip) — the same mechanics that produce vertical height.",
+        muscles: ["Glutes", "Hamstrings", "Quadriceps", "Calves"],
+        steps: [
+          "Stand with feet shoulder-width apart, toes behind a line.",
+          "Swing arms back, load your hips, and jump as far forward as possible.",
+          "Use your arms to drive horizontal momentum.",
+          "Land with soft knees and measure the distance.",
+          "Walk back, reset, and repeat."
+        ],
+        tips: [
+          "Focus on pushing the ground away, not just swinging your arms.",
+          "Track distance each session to measure power improvements.",
+          "Keep a slight forward lean at takeoff for max distance."
+        ]
+      },
+      {
+        name: "Single-Leg Bound",
+        badge: "explosive",
+        level: "intermediate",
+        sets: "3 sets",
+        reps: "8 per side",
+        rest: "90 sec",
+        desc: "Alternate bounding on one leg to build unilateral power, balance, and address strength asymmetries that limit your jump.",
+        muscles: ["Glutes", "Quadriceps", "Calves", "Hip Flexors"],
+        steps: [
+          "Stand on one leg with a slight forward lean.",
+          "Drive the opposite knee up and explode off the standing leg.",
+          "Land on the opposite leg, immediately drive and explode again.",
+          "Continue alternating in a continuous bounding pattern.",
+          "Focus on height and distance with each bound."
+        ],
+        tips: [
+          "Drive the knee up aggressively — this powers the jump.",
+          "Stay tall; don't collapse forward at the hip.",
+          "Start with shorter bounds and work up to longer, more powerful ones."
+        ]
+      },
+      {
+        name: "Ankle Hops",
+        badge: "explosive",
+        level: "beginner",
+        sets: "4 sets",
+        reps: "15 reps",
+        rest: "60 sec",
+        desc: "Rapid, stiff-legged hops using only ankle plantarflexion. Develops reactive calf strength and tendon stiffness — critical for efficient energy return.",
+        muscles: ["Calves", "Achilles Tendon"],
+        steps: [
+          "Stand with feet hip-width apart, arms at sides.",
+          "Keep your knees nearly locked and jump using only ankle flexion.",
+          "Land on the balls of your feet and immediately rebound.",
+          "Maintain a rapid, continuous rhythm.",
+          "Keep the torso upright and stable."
+        ],
+        tips: [
+          "Think about the ground like a spring — push down to bounce up.",
+          "Keep contacts as brief as possible.",
+          "Progress to single-leg ankle hops once you've built base stiffness."
+        ]
+      },
+      {
+        name: "Tuck Jump",
+        badge: "explosive",
+        level: "intermediate",
+        sets: "3 sets",
+        reps: "8 reps",
+        rest: "90 sec",
+        desc: "Jump and pull knees to chest at the peak. Builds explosive power and air awareness while adding a coordination challenge.",
+        muscles: ["Quadriceps", "Hip Flexors", "Calves", "Glutes"],
+        steps: [
+          "Stand with feet shoulder-width apart.",
+          "Drop into a quick quarter squat and explode upward.",
+          "At peak height, pull both knees toward your chest.",
+          "Release legs and land softly with knees bent.",
+          "Immediately repeat for continuous reps."
+        ],
+        tips: [
+          "Don't over-pause at the bottom — use the stretch reflex.",
+          "Aim to get knees above hip height.",
+          "Land on the balls of your feet, then roll to flat."
+        ]
+      },
+      {
+        name: "Lateral Bounds",
+        badge: "explosive",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "10 per side",
+        rest: "60 sec",
+        desc: "Single-leg lateral jumps that build frontal plane stability and strengthen the glutes in patterns that directly transfer to athletic movement and jumping.",
+        muscles: ["Glutes", "Abductors", "Quadriceps", "Calves"],
+        steps: [
+          "Stand on one leg with a slight bend in the knee.",
+          "Push off laterally as far as possible.",
+          "Land on the opposite leg, absorb the impact, and stabilize.",
+          "Load that leg and bound back to the start side.",
+          "Continue alternating for prescribed reps each direction."
+        ],
+        tips: [
+          "Stick each landing for 1 second before rebounding — quality over speed.",
+          "Keep your chest tall throughout the movement.",
+          "Increase distance as stability improves."
+        ]
+      },
+      {
+        name: "Drop & Stick",
+        badge: "explosive",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "8 reps",
+        rest: "60 sec",
+        desc: "Drop from a box and hold the landing position. Teaches force absorption mechanics and builds the ankle/knee stability needed for safe plyometric training.",
+        muscles: ["Quadriceps", "Glutes", "Calves", "Ankles"],
+        steps: [
+          "Stand on a low box (6–12\").",
+          "Step off and drop, landing on both feet.",
+          "Absorb into a quarter-squat position and hold for 2 seconds.",
+          "Focus on landing with equal weight on both feet.",
+          "Step back on the box and repeat."
+        ],
+        tips: [
+          "This is a prerequisite to depth jumps — master it first.",
+          "Land silently — noise indicates poor shock absorption.",
+          "Keep knees tracking over toes, not caving inward."
+        ]
+      }
+    ]
+  },
+
+  weightlifting: {
+    label: "Weightlifting",
+    color: "#4f7fff",
+    desc: "Compound strength movements that build the raw force production your legs need. Higher strength levels directly translate to more explosive power.",
+    items: [
+      {
+        name: "Back Squat",
+        badge: "strength",
+        level: "intermediate",
+        sets: "4 sets",
+        reps: "4–6 reps",
+        rest: "3 min",
+        desc: "The king of lower body strength exercises. Heavy squats develop maximum leg force — and force is the foundation of explosive power.",
+        muscles: ["Quadriceps", "Glutes", "Hamstrings", "Core"],
+        steps: [
+          "Set a barbell on a rack at shoulder height. Step under it and position the bar on your upper traps.",
+          "Grip the bar just outside shoulder width and step back with feet shoulder-width apart, toes slightly out.",
+          "Take a deep breath, brace your core, and descend until thighs are parallel or below.",
+          "Drive through your heels and mid-foot to stand back up.",
+          "Maintain a neutral spine throughout the movement."
+        ],
+        tips: [
+          "Depth matters — parallel or below maximizes glute and hamstring recruitment.",
+          "Keep knees tracking in line with your toes.",
+          "Progressively overload — add 5 lbs per week to build strength over time."
+        ]
+      },
+      {
+        name: "Romanian Deadlift",
+        badge: "strength",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "8–10 reps",
+        rest: "2 min",
+        desc: "A hip-hinge movement that isolates the hamstrings and glutes through a long range of motion — two muscle groups critical for a powerful jump.",
+        muscles: ["Hamstrings", "Glutes", "Lower Back", "Core"],
+        steps: [
+          "Hold a barbell at hip height with an overhand grip, feet hip-width apart.",
+          "Push your hips back while lowering the bar along your legs.",
+          "Feel a deep stretch in your hamstrings (bar at mid-shin level).",
+          "Drive your hips forward to return to standing, squeezing glutes at the top.",
+          "Keep the back flat and the bar close to your body throughout."
+        ],
+        tips: [
+          "This is a hip hinge, not a squat — push hips BACK, not down.",
+          "Pause at the bottom for 1–2 seconds to increase time under tension.",
+          "Avoid rounding the lower back — load only as much as you can handle with good form."
+        ]
+      },
+      {
+        name: "Bulgarian Split Squat",
+        badge: "strength",
+        level: "intermediate",
+        sets: "3 sets",
+        reps: "8 per leg",
+        rest: "2 min",
+        desc: "Single-leg squat with rear foot elevated. One of the best exercises for unilateral quad and glute strength — directly transferring to one-leg jumping ability.",
+        muscles: ["Quadriceps", "Glutes", "Hip Flexors", "Calves"],
+        steps: [
+          "Stand a lunge-length in front of a bench. Rest your rear foot on the bench behind you.",
+          "Hold dumbbells at your sides or a barbell on your back.",
+          "Lower your back knee toward the floor until your front thigh is parallel.",
+          "Drive through your front heel to return to standing.",
+          "Keep your torso upright and front knee tracking over your toes."
+        ],
+        tips: [
+          "Lean slightly forward from the hips to shift emphasis to the glutes.",
+          "A 3–4\" forward foot position relative to the bench hits quads more.",
+          "Don't let the rear hip hike — keep both hips squared forward."
+        ]
+      },
+      {
+        name: "Power Clean",
+        badge: "strength",
+        level: "advanced",
+        sets: "4 sets",
+        reps: "3 reps",
+        rest: "3 min",
+        desc: "The most sport-specific barbell movement for athleticism. The power clean trains explosive triple extension at extremely high velocities — exactly what jumping demands.",
+        muscles: ["Full Body", "Glutes", "Hamstrings", "Traps", "Core"],
+        steps: [
+          "Set up with the bar over mid-foot, shins close, hips above knees.",
+          "Pull the bar off the floor by pushing the floor away (don't 'jerk' it up).",
+          "As the bar passes mid-thigh, violently extend your hips, knees, and ankles.",
+          "Shrug and pull elbows high as the bar accelerates upward.",
+          "Drop under the bar and catch it on your front delts in a quarter squat."
+        ],
+        tips: [
+          "The second pull (hip extension) is the explosive phase — focus here.",
+          "Keep the bar close to your body on the way up.",
+          "Learn the hang power clean first if you're new to Olympic lifting."
+        ]
+      },
+      {
+        name: "Trap Bar Deadlift",
+        badge: "strength",
+        level: "beginner",
+        sets: "4 sets",
+        reps: "5 reps",
+        rest: "3 min",
+        desc: "A deadlift variation with a more upright torso that closely mimics jump mechanics. Studies show strong correlation between trap bar deadlift strength and vertical jump performance.",
+        muscles: ["Quadriceps", "Glutes", "Hamstrings", "Traps", "Core"],
+        steps: [
+          "Stand inside a trap bar with feet hip-width apart, handles at your sides.",
+          "Hinge at the hips, grip the handles, and straighten your back.",
+          "Take a deep breath, brace, and push the floor away to stand up.",
+          "Lock out at the top with hips fully extended.",
+          "Lower with control back to the floor."
+        ],
+        tips: [
+          "Use the high handles on the trap bar if you're new to the movement.",
+          "Think 'push the floor' not 'pull the bar' — this is a leg press, not a back exercise.",
+          "Great substitute for conventional deadlifts for athletes focused on jumping."
+        ]
+      },
+      {
+        name: "Step-Up with Knee Drive",
+        badge: "strength",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "10 per leg",
+        rest: "90 sec",
+        desc: "Unilateral strength movement that mimics the takeoff mechanics of a one-leg jump. Builds quad strength and hip flexor power simultaneously.",
+        muscles: ["Quadriceps", "Glutes", "Hip Flexors"],
+        steps: [
+          "Stand in front of a box or bench (12–18\"). Hold dumbbells at your sides.",
+          "Place one foot on the box and drive through your heel to step up.",
+          "At the top, drive the opposite knee up to hip height.",
+          "Lower back down with control.",
+          "Complete all reps on one side before switching."
+        ],
+        tips: [
+          "Push through the heel on the box — not the toe.",
+          "The knee drive at the top adds hip flexor strength that powers the gather phase of a jump.",
+          "Increase box height over time to build more range of motion strength."
+        ]
+      },
+      {
+        name: "Calf Raises (Weighted)",
+        badge: "strength",
+        level: "beginner",
+        sets: "4 sets",
+        reps: "12–15 reps",
+        rest: "60 sec",
+        desc: "Direct calf and Achilles development. The calf complex contributes 20–30% of vertical jump force, and is often undertrained relative to the glutes and quads.",
+        muscles: ["Gastrocnemius", "Soleus", "Achilles Tendon"],
+        steps: [
+          "Stand on the edge of a step with heels hanging off, holding a dumbbell in each hand.",
+          "Lower your heels below the step level for a full stretch.",
+          "Rise up onto your toes as high as possible.",
+          "Hold the top position for 1–2 seconds.",
+          "Lower slowly (3 count) for maximum eccentric loading."
+        ],
+        tips: [
+          "Full range of motion is critical — partial reps shortchange the gains.",
+          "Perform both straight-knee (gastrocnemius) and bent-knee (soleus) variations.",
+          "Progress with a weighted vest or holding heavier dumbbells."
+        ]
+      },
+      {
+        name: "Nordic Hamstring Curl",
+        badge: "strength",
+        level: "intermediate",
+        sets: "3 sets",
+        reps: "5–8 reps",
+        rest: "2 min",
+        desc: "One of the most effective hamstring exercises known to science. Builds eccentric strength that protects against injury and contributes to powerful hip extension.",
+        muscles: ["Hamstrings", "Glutes"],
+        steps: [
+          "Kneel on a padded surface, with someone holding your ankles or anchoring them under a heavy object.",
+          "Keep your body rigid from knees to head.",
+          "Slowly lower your torso toward the floor, resisting with your hamstrings as long as possible.",
+          "Catch yourself with your hands when your hamstrings give out.",
+          "Use your hands to push back up to the start position."
+        ],
+        tips: [
+          "Control the descent — that's where the magic happens.",
+          "Even 3–4 reps per set done with full effort produces significant adaptation.",
+          "Expect serious DOMS the first few weeks — ease in gradually."
+        ]
+      }
+    ]
+  },
+
+  stretches: {
+    label: "Stretches & Mobility",
+    color: "#34d399",
+    desc: "Targeted mobility work to remove the restrictions that cap your jump. Hip flexors, ankles, and thoracic spine are the three most common vertical limiters.",
+    items: [
+      {
+        name: "Hip Flexor Lunge Stretch",
+        badge: "mobility",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "45 sec per side",
+        rest: "15 sec",
+        desc: "Releases tight hip flexors that anteriorly tilt the pelvis and inhibit full glute activation — a hidden but major limiter of jumping power.",
+        muscles: ["Hip Flexors", "Psoas", "Iliacus"],
+        steps: [
+          "Kneel on one knee with the other foot forward (lunge position).",
+          "Tuck your pelvis under (posterior tilt) — this is key to feeling the stretch.",
+          "Shift your hips forward gently until you feel a deep stretch in the front of the rear hip.",
+          "Hold the position and breathe deeply.",
+          "Optionally reach the same-side arm overhead and lean slightly away."
+        ],
+        tips: [
+          "The posterior pelvic tilt is what makes this stretch effective — don't skip it.",
+          "Avoid arching your lower back excessively.",
+          "Perform this after every training session and ideally before bed."
+        ]
+      },
+      {
+        name: "Ankle Dorsiflexion Stretch",
+        badge: "mobility",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "45 sec per side",
+        rest: "15 sec",
+        desc: "Improves ankle dorsiflexion, which allows you to sink deeper into the loading position before a jump and generate more force from the ground.",
+        muscles: ["Gastrocnemius", "Soleus", "Ankle Capsule"],
+        steps: [
+          "Stand facing a wall, foot about 4 inches from the baseboard.",
+          "Drive your knee forward toward the wall, keeping your heel flat on the floor.",
+          "Hold when you feel a stretch in the back of the calf and ankle.",
+          "For a deeper stretch, move your foot further from the wall.",
+          "Alternate between toes straight, slightly in, and slightly out."
+        ],
+        tips: [
+          "Aim for your knee to touch the wall without the heel rising — that's the mobility benchmark.",
+          "Perform banded ankle mobilizations as a warm-up complement.",
+          "Poor ankle mobility is extremely common and commonly overlooked for jump training."
+        ]
+      },
+      {
+        name: "Hamstring Doorway Stretch",
+        badge: "mobility",
+        level: "beginner",
+        sets: "2 sets",
+        reps: "60 sec per side",
+        rest: "15 sec",
+        desc: "Passive hamstring stretch using a wall for support. Tight hamstrings inhibit hip extension and can reduce jump height by limiting stride length and force application.",
+        muscles: ["Hamstrings", "Lower Back"],
+        steps: [
+          "Lie on your back in a doorway. Place one leg up the wall and the other through the doorway on the floor.",
+          "Scoot your hips close to the wall until you feel a stretch in the raised leg.",
+          "Keep the raised leg as straight as possible.",
+          "Relax and breathe into the stretch — let gravity do the work.",
+          "Hold, then switch sides."
+        ],
+        tips: [
+          "Never bounce or force the stretch — let it release naturally.",
+          "If a doorway isn't available, use a strap or band around your foot.",
+          "The goal is 90° or more of hip flexion with a straight knee."
+        ]
+      },
+      {
+        name: "Pigeon Pose (Hip External Rotation)",
+        badge: "mobility",
+        level: "intermediate",
+        sets: "2 sets",
+        reps: "60 sec per side",
+        rest: "15 sec",
+        desc: "Deep hip opener targeting the glutes, piriformis, and external rotators. Improves hip mobility so your glutes can fully engage during the takeoff.",
+        muscles: ["Glutes", "Piriformis", "IT Band", "Hip Rotators"],
+        steps: [
+          "Start in a downward dog position.",
+          "Bring your right knee forward and place it behind your right wrist, foot toward the left hip.",
+          "Extend the left leg straight back, keeping the hip squared forward.",
+          "Lower your torso over the front leg.",
+          "Hold, breathe, and relax into the stretch."
+        ],
+        tips: [
+          "If hips don't sit level, place a folded towel under the elevated hip.",
+          "Breathe out and consciously relax on each exhale.",
+          "Progress to elevated pigeon (foot on a box) for a deeper stretch."
+        ]
+      },
+      {
+        name: "World's Greatest Stretch",
+        badge: "mobility",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "5 per side",
+        rest: "30 sec",
+        desc: "A dynamic multi-joint stretch that opens up the hip flexors, thoracic spine, and ankles simultaneously — ideal as a warm-up before any jump training session.",
+        muscles: ["Hip Flexors", "T-Spine", "Hamstrings", "Groin"],
+        steps: [
+          "Start in a deep lunge with your right foot forward.",
+          "Place both hands on the inside of your right foot.",
+          "Drop your right elbow to the floor, hold 2 seconds.",
+          "Rotate and reach your right arm toward the ceiling, opening your chest.",
+          "Push your hips back and straighten the front leg for a hamstring stretch. Return and repeat."
+        ],
+        tips: [
+          "Move slowly and deliberately through each position.",
+          "This is perfect as a warm-up before plyometrics.",
+          "Focus on thoracic rotation — most athletes are extremely stiff here."
+        ]
+      },
+      {
+        name: "Couch Stretch",
+        badge: "mobility",
+        level: "intermediate",
+        sets: "2 sets",
+        reps: "90 sec per side",
+        rest: "30 sec",
+        desc: "The most effective hip flexor and quad stretch available. Targets the rectus femoris (which crosses both the hip and knee) — critical for athletes who sit for long periods.",
+        muscles: ["Quadriceps", "Hip Flexors", "Rectus Femoris"],
+        steps: [
+          "Place your rear shin and knee against a wall (or couch backrest), toes pointing up.",
+          "Step the front foot forward into a lunge position.",
+          "Squeeze your glutes and tuck your pelvis under.",
+          "Hold the position upright — resist the urge to lean forward.",
+          "For progression, sit more upright until your torso is vertical."
+        ],
+        tips: [
+          "The glute squeeze and posterior pelvic tilt is critical — without it you'll just arch your back.",
+          "This stretch is uncomfortable but extremely effective — push through it.",
+          "Work up to 3 minutes per side over several weeks."
+        ]
+      },
+      {
+        name: "Seated Calf Stretch (Soleus)",
+        badge: "mobility",
+        level: "beginner",
+        sets: "2 sets",
+        reps: "45 sec per side",
+        rest: "15 sec",
+        desc: "Specifically targets the soleus (deeper calf muscle), which is best stretched with a bent knee. The soleus limits ankle dorsiflexion more than the gastrocnemius in most athletes.",
+        muscles: ["Soleus", "Achilles Tendon"],
+        steps: [
+          "Sit on the floor with legs extended. Bend one knee to about 90 degrees.",
+          "Loop a band or towel around the ball of your foot on the bent-knee leg.",
+          "Pull gently toward you while keeping the knee bent.",
+          "Feel the stretch deep in the lower calf, closer to the heel.",
+          "Hold and breathe."
+        ],
+        tips: [
+          "The knee MUST be bent — a straight knee shifts emphasis to the gastrocnemius.",
+          "Can also be done standing: bent knee, heel flat, lean into a wall.",
+          "Pair with ankle circles for comprehensive ankle mobility."
+        ]
+      },
+      {
+        name: "Thoracic Spine Rotation",
+        badge: "mobility",
+        level: "beginner",
+        sets: "3 sets",
+        reps: "10 per side",
+        rest: "30 sec",
+        desc: "Rotational drill targeting the upper back. A stiff thoracic spine limits arm swing during a jump — and arm swing can add 10–15% to jump height.",
+        muscles: ["Thoracic Spine", "Lats", "Rhomboids"],
+        steps: [
+          "Sit in a chair or kneel on the floor, arms crossed over your chest.",
+          "Sit tall and rotate your torso as far as possible to the right.",
+          "Hold for 2 seconds at end range.",
+          "Return to center and rotate left.",
+          "Keep your hips square and still throughout."
+        ],
+        tips: [
+          "Most of your rotation should come from the upper back, not the lower back or hips.",
+          "Foam rolling the thoracic spine before this drill will dramatically improve results.",
+          "Breathe out as you rotate — inhale on the way back."
+        ]
+      }
+    ]
+  }
+};
+
+const PROGRAM = [
+  {
+    week: "Weeks 1–2 — Foundation",
+    days: [
+      {
+        name: "Day 1 — Monday",
+        focus: "Strength + Plyometrics",
+        type: "training",
+        exercises: [
+          { name: "World's Greatest Stretch (Warm-up)", spec: "3×5 each side" },
+          { name: "Box Jump", spec: "4×6 — focus on landing mechanics" },
+          { name: "Back Squat", spec: "4×6 @ 70% 1RM" },
+          { name: "Romanian Deadlift", spec: "3×10" },
+          { name: "Calf Raises (Weighted)", spec: "4×15" },
+          { name: "Hip Flexor Lunge Stretch (Cool-down)", spec: "3×45s each side" }
+        ]
+      },
+      {
+        name: "Day 2 — Wednesday",
+        focus: "Explosive Power",
+        type: "training",
+        exercises: [
+          { name: "Ankle Dorsiflexion Stretch (Warm-up)", spec: "3×45s each side" },
+          { name: "Ankle Hops", spec: "4×15 — minimal ground contact" },
+          { name: "Broad Jump", spec: "4×6" },
+          { name: "Lateral Bounds", spec: "3×10 each side" },
+          { name: "Step-Up with Knee Drive", spec: "3×10 each leg" },
+          { name: "Seated Calf Stretch (Cool-down)", spec: "2×45s each side" }
+        ]
+      },
+      {
+        name: "Day 3 — Thursday",
+        focus: "Active Recovery & Mobility",
+        type: "training",
+        exercises: [
+          { name: "Thoracic Spine Rotation", spec: "3×10 each side" },
+          { name: "Pigeon Pose", spec: "2×60s each side" },
+          { name: "Hamstring Doorway Stretch", spec: "2×60s each side" },
+          { name: "Couch Stretch", spec: "2×90s each side" },
+          { name: "Ankle Dorsiflexion Stretch", spec: "3×45s each side" }
+        ]
+      },
+      {
+        name: "Day 4 — Friday",
+        focus: "Strength",
+        type: "training",
+        exercises: [
+          { name: "World's Greatest Stretch (Warm-up)", spec: "3×5 each side" },
+          { name: "Trap Bar Deadlift", spec: "4×5 @ 75% 1RM" },
+          { name: "Bulgarian Split Squat", spec: "3×8 each leg" },
+          { name: "Nordic Hamstring Curl", spec: "3×5 — controlled descent" },
+          { name: "Calf Raises (Weighted)", spec: "4×15" },
+          { name: "Hip Flexor Lunge Stretch (Cool-down)", spec: "3×45s each side" }
+        ]
+      },
+      { name: "Days 5–7 — Weekend", focus: "Rest", type: "rest", exercises: [] }
+    ]
+  },
+  {
+    week: "Weeks 3–4 — Development",
+    days: [
+      {
+        name: "Day 1 — Monday",
+        focus: "Max Strength + Power",
+        type: "training",
+        exercises: [
+          { name: "World's Greatest Stretch (Warm-up)", spec: "3×5 each side" },
+          { name: "Depth Jump → Box Jump superset", spec: "4×5 depth + 4×5 box — 3 min rest" },
+          { name: "Back Squat", spec: "4×4 @ 80% 1RM" },
+          { name: "Romanian Deadlift", spec: "3×8" },
+          { name: "Calf Raises (Weighted)", spec: "4×12" },
+          { name: "Couch Stretch (Cool-down)", spec: "2×90s each side" }
+        ]
+      },
+      {
+        name: "Day 2 — Wednesday",
+        focus: "Reactive Training",
+        type: "training",
+        exercises: [
+          { name: "Ankle Dorsiflexion Stretch (Warm-up)", spec: "3×45s each side" },
+          { name: "Tuck Jump", spec: "3×8" },
+          { name: "Single-Leg Bound", spec: "3×8 each side" },
+          { name: "Ankle Hops", spec: "4×20 reps" },
+          { name: "Step-Up with Knee Drive", spec: "3×10 each leg" },
+          { name: "Seated Calf Stretch (Cool-down)", spec: "2×45s each side" }
+        ]
+      },
+      {
+        name: "Day 3 — Thursday",
+        focus: "Active Recovery & Mobility",
+        type: "training",
+        exercises: [
+          { name: "Thoracic Spine Rotation", spec: "3×10 each side" },
+          { name: "Pigeon Pose", spec: "2×60s each side" },
+          { name: "Hamstring Doorway Stretch", spec: "2×60s each side" },
+          { name: "Couch Stretch", spec: "2×90s each side" }
+        ]
+      },
+      {
+        name: "Day 4 — Friday",
+        focus: "Strength + Olympic Power",
+        type: "training",
+        exercises: [
+          { name: "World's Greatest Stretch (Warm-up)", spec: "3×5 each side" },
+          { name: "Power Clean", spec: "4×3 @ moderate load — technical focus" },
+          { name: "Trap Bar Deadlift", spec: "4×4 @ 80% 1RM" },
+          { name: "Bulgarian Split Squat", spec: "3×8 each leg" },
+          { name: "Nordic Hamstring Curl", spec: "3×6" },
+          { name: "Hip Flexor Lunge Stretch (Cool-down)", spec: "3×45s each side" }
+        ]
+      },
+      { name: "Days 5–7 — Weekend", focus: "Rest", type: "rest", exercises: [] }
+    ]
+  },
+  {
+    week: "Weeks 5–6 — Intensification",
+    days: [
+      {
+        name: "Day 1 — Monday",
+        focus: "Max Strength",
+        type: "training",
+        exercises: [
+          { name: "World's Greatest Stretch (Warm-up)", spec: "3×5 each side" },
+          { name: "Drop & Stick → Depth Jump complex", spec: "3×5 drop + 3×5 depth" },
+          { name: "Back Squat", spec: "5×3 @ 85% 1RM" },
+          { name: "Romanian Deadlift", spec: "3×8 — pause 2s at bottom" },
+          { name: "Calf Raises (Weighted)", spec: "5×10 — 3s eccentric" }
+        ]
+      },
+      {
+        name: "Day 2 — Wednesday",
+        focus: "High Volume Plyometrics",
+        type: "training",
+        exercises: [
+          { name: "Ankle Hops", spec: "4×20" },
+          { name: "Box Jump", spec: "5×5 — max height" },
+          { name: "Single-Leg Bound", spec: "4×8 each side" },
+          { name: "Tuck Jump", spec: "3×8" },
+          { name: "Broad Jump", spec: "4×6 — track distance" }
+        ]
+      },
+      {
+        name: "Day 3 — Thursday",
+        focus: "Mobility & Recovery",
+        type: "training",
+        exercises: [
+          { name: "Full Mobility Circuit", spec: "All 8 stretches, 2 rounds" }
+        ]
+      },
+      {
+        name: "Day 4 — Friday",
+        focus: "Olympic Lifting + Strength",
+        type: "training",
+        exercises: [
+          { name: "Power Clean", spec: "5×3 @ working weight" },
+          { name: "Trap Bar Deadlift", spec: "5×3 @ 85% 1RM" },
+          { name: "Bulgarian Split Squat", spec: "4×6 each leg" },
+          { name: "Nordic Hamstring Curl", spec: "3×8" }
+        ]
+      },
+      { name: "Days 5–7 — Weekend", focus: "Rest", type: "rest", exercises: [] }
+    ]
+  },
+  {
+    week: "Weeks 7–8 — Peak & Test",
+    days: [
+      {
+        name: "Day 1 — Monday",
+        focus: "Max Strength (Deload into peak)",
+        type: "training",
+        exercises: [
+          { name: "Back Squat", spec: "3×3 @ 90% 1RM" },
+          { name: "Depth Jump", spec: "3×4 — absolute max effort" },
+          { name: "Trap Bar Deadlift", spec: "3×3 @ 90% 1RM" }
+        ]
+      },
+      {
+        name: "Day 2 — Wednesday",
+        focus: "Speed & Power — Low Volume",
+        type: "training",
+        exercises: [
+          { name: "Box Jump", spec: "3×3 — max height, full rest" },
+          { name: "Broad Jump", spec: "3×3 — max distance" },
+          { name: "Power Clean", spec: "3×2 @ max controllable load" }
+        ]
+      },
+      {
+        name: "Day 3 — Thursday",
+        focus: "Final Mobility Flush",
+        type: "training",
+        exercises: [
+          { name: "Full Mobility Circuit", spec: "All 8 stretches, 2 rounds" }
+        ]
+      },
+      {
+        name: "Day 4 — Saturday",
+        focus: "VERTICAL JUMP TEST",
+        type: "training",
+        exercises: [
+          { name: "Warm-up: World's Greatest Stretch", spec: "3×5 each side" },
+          { name: "Warm-up: Box Jumps", spec: "3×3 sub-max" },
+          { name: "Standing Vertical Jump Test", spec: "3 max-effort attempts" },
+          { name: "Running Vertical Jump Test (optional)", spec: "3 max-effort attempts" },
+          { name: "Record your new PR!", spec: "🏆" }
+        ]
+      },
+      { name: "Days 5–7 — Active Recovery", focus: "Light mobility only", type: "rest", exercises: [] }
+    ]
+  }
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+let currentTab = 'plyometrics';
+let currentView = 'home';
+let timerInterval = null;
+let timerSeconds = 90;
+let timerRunning = false;
+const DEFAULT_REST = 90;
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+
+function showView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+
+  document.querySelectorAll('#headerNav button').forEach((btn, i) => {
+    const views = ['home', 'exercises', 'program'];
+    btn.classList.toggle('active', views[i] === view);
+  });
+
+  currentView = view;
+  if (view === 'exercises') renderExercises(currentTab);
+  if (view === 'program') renderProgram();
+}
+
+// ── EXERCISES ─────────────────────────────────────────────────────────────────
+
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('#exerciseTabs .tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  if (currentView === 'exercises') renderExercises(tab);
+}
+
+function renderExercises(tab) {
+  const data = EXERCISES[tab];
+  const colorMap = { plyometrics: '#ff6b35', weightlifting: '#4f7fff', stretches: '#34d399' };
+
+  const html = `
+    <div class="section-header">
+      <h2>${data.label}</h2>
+      <p>${data.desc}</p>
+    </div>
+    <div class="exercise-grid">
+      ${data.items.map((ex, i) => `
+        <div class="exercise-card" onclick="openModal(${JSON.stringify(tab)}, ${i})">
+          <div class="card-banner" style="background:${colorMap[tab]}"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-title">${ex.name}</div>
+              <span class="card-badge badge-${ex.level}">${ex.level}</span>
+            </div>
+            <p class="card-desc">${ex.desc}</p>
+            <div class="card-meta">
+              <div class="meta-pill"><span class="icon">⚡</span>${ex.sets}</div>
+              <div class="meta-pill"><span class="icon">🔁</span>${ex.reps}</div>
+              <div class="meta-pill"><span class="icon">⏱</span>${ex.rest} rest</div>
+            </div>
+            <div class="card-muscles">
+              ${ex.muscles.map(m => `<span class="muscle-tag">${m}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('exerciseContent').innerHTML = html;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+
+function openModal(tab, index) {
+  const ex = EXERCISES[tab].items[index];
+  document.getElementById('modalTitle').textContent = ex.name;
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+      <span class="card-badge badge-${ex.badge}" style="font-size:0.8rem; padding:4px 12px;">${ex.badge}</span>
+      <span class="card-badge badge-${ex.level}" style="font-size:0.8rem; padding:4px 12px;">${ex.level}</span>
+      <span class="meta-pill"><span class="icon">⚡</span>${ex.sets}</span>
+      <span class="meta-pill"><span class="icon">🔁</span>${ex.reps}</span>
+      <span class="meta-pill"><span class="icon">⏱</span>${ex.rest} rest</span>
+    </div>
+    <div class="modal-section">
+      <h4>How to perform</h4>
+      <div class="steps">
+        ${ex.steps.map((s, i) => `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <p>${s}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="modal-section">
+      <h4>Coaching Tips</h4>
+      <div class="tips">
+        ${ex.tips.map(t => `<div class="tip">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="modal-section" style="margin-bottom:0">
+      <h4>Muscles Trained</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${ex.muscles.map(m => `<span class="muscle-tag" style="font-size:0.82rem; padding:4px 10px;">${m}</span>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay') || e.currentTarget.classList.contains('modal-close')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+
+// ── PROGRAM ───────────────────────────────────────────────────────────────────
+
+function renderProgram() {
+  const html = PROGRAM.map(week => `
+    <div class="program-week">
+      <div class="week-label">${week.week}</div>
+      <div class="program-days">
+        ${week.days.map((day, di) => `
+          <div class="program-day">
+            <div class="day-header" onclick="toggleDay(this)">
+              <div>
+                <div class="day-name">${day.name}</div>
+                <div class="day-focus">${day.focus}</div>
+              </div>
+              <span class="day-tag ${day.type}">${day.type === 'rest' ? 'Rest' : 'Training'}</span>
+            </div>
+            ${day.exercises.length > 0 ? `
+              <div class="day-exercises">
+                ${day.exercises.map(ex => `
+                  <div class="program-ex">
+                    <span class="program-ex-name">${ex.name}</span>
+                    <span class="program-ex-spec">${ex.spec}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('programContent').innerHTML = html;
+}
+
+function toggleDay(header) {
+  const exercises = header.nextElementSibling;
+  if (exercises && exercises.classList.contains('day-exercises')) {
+    exercises.classList.toggle('open');
+  }
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+
+function openTimer() {
+  document.getElementById('timerBar').classList.add('open');
+  document.getElementById('openTimerBtn').style.display = 'none';
+}
+function closeTimerBar() {
+  document.getElementById('timerBar').classList.remove('open');
+  document.getElementById('openTimerBtn').style.display = 'flex';
+  stopTimer();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('timerStartBtn');
+  if (timerRunning) {
+    stopTimer();
+    btn.textContent = 'Start';
+  } else {
+    timerRunning = true;
+    btn.textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      if (timerSeconds <= 0) {
+        stopTimer();
+        btn.textContent = 'Start';
+        document.getElementById('timerDisplay').textContent = 'Done!';
+        document.getElementById('timerDisplay').style.color = 'var(--accent3)';
+        return;
+      }
+      timerSeconds--;
+      updateTimerDisplay();
+    }, 1000);
+  }
+}
+
+function stopTimer() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+}
+
+function resetTimer() {
+  stopTimer();
+  timerSeconds = DEFAULT_REST;
+  document.getElementById('timerDisplay').textContent = '1:30';
+  document.getElementById('timerDisplay').style.color = 'var(--accent)';
+  document.getElementById('timerStartBtn').textContent = 'Start';
+}
+</script>
+</body>
+</html>

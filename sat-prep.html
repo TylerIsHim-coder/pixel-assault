@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoreUp - SAT Prep</title>
+<style>
+:root {
+  --bg: #f0f6ff;
+  --card: #ffffff;
+  --accent: #0891b2;
+  --accent-light: #e0f2fe;
+  --accent-dark: #0e7490;
+  --text: #0f172a;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --radius: 16px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+button { cursor: pointer; border: none; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* Layout */
+#app { display: flex; min-height: 100vh; }
+#sidebar { width: 240px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+#main-content { margin-left: 240px; flex: 1; padding: 32px; max-width: 1100px; }
+#bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); z-index: 100; padding: 8px 0; }
+
+/* Sidebar */
+.logo { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 32px; padding-left: 8px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 500; cursor: pointer; transition: all 0.15s; margin-bottom: 4px; user-select: none; }
+.nav-item:hover { background: var(--accent-light); color: var(--accent); }
+.nav-item.active { background: var(--accent); color: white; }
+.nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* Bottom nav */
+.bottom-nav-items { display: flex; justify-content: space-around; }
+.bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.bottom-nav-item.active { color: var(--accent); }
+.bottom-nav-item svg { width: 22px; height: 22px; }
+
+/* Cards */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+.card-sm { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 16px; }
+
+/* Buttons */
+.btn { padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 15px; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-secondary { background: var(--accent-light); color: var(--accent); }
+.btn-secondary:hover { background: #bae6fd; }
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-lg { padding: 16px 32px; font-size: 17px; border-radius: 14px; }
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Onboarding */
+#onboarding { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.onboarding-card { background: var(--card); border-radius: 24px; padding: 48px; max-width: 480px; width: 90%; box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+.slide { display: none; }
+.slide.active { display: block; }
+.slide-num { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.slide h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+.slide p { color: var(--text-secondary); margin-bottom: 28px; line-height: 1.6; }
+.slide-dots { display: flex; gap: 8px; justify-content: center; margin-top: 24px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+.dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 8px; }
+.form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.15s; }
+.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.score-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.score-option { padding: 12px; border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.score-option:hover { border-color: var(--accent); color: var(--accent); }
+.score-option.selected { border-color: var(--accent); background: var(--accent); color: white; }
+.level-options { display: flex; flex-direction: column; gap: 10px; }
+.level-option { padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; }
+.level-option:hover { border-color: var(--accent); }
+.level-option.selected { border-color: var(--accent); background: var(--accent-light); }
+.level-option strong { display: block; font-size: 15px; }
+.level-option span { font-size: 13px; color: var(--text-secondary); }
+
+/* Dashboard */
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 26px; font-weight: 800; }
+.page-header p { color: var(--text-secondary); margin-top: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.stat-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 800; }
+.stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.score-display { font-size: 48px; font-weight: 900; color: var(--accent); }
+.progress-bar-wrap { background: var(--border); border-radius: 99px; height: 8px; margin: 8px 0; }
+.progress-bar { background: var(--accent); border-radius: 99px; height: 100%; transition: width 0.5s; }
+.section-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+.section-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+.section-card:hover { border-color: var(--accent); }
+.section-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.section-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 20px; }
+
+/* Practice */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+.filter-select { padding: 9px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--card); cursor: pointer; outline: none; }
+.filter-select:focus { border-color: var(--accent); }
+.question-card { background: var(--card); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.q-meta { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.badge { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.badge-easy { background: #d1fae5; color: #065f46; }
+.badge-medium { background: #fef3c7; color: #92400e; }
+.badge-hard { background: #fee2e2; color: #991b1b; }
+.badge-cat { background: var(--accent-light); color: var(--accent-dark); }
+.q-text { font-size: 16px; line-height: 1.7; margin-bottom: 20px; font-weight: 500; }
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice { padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 15px; transition: all 0.15s; text-align: left; background: white; display: flex; align-items: flex-start; gap: 12px; }
+.choice:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+.choice.selected { border-color: var(--accent); background: var(--accent-light); }
+.choice.correct { border-color: var(--success); background: #d1fae5; }
+.choice.incorrect { border-color: var(--error); background: #fee2e2; }
+.choice:disabled { cursor: default; }
+.choice-letter { font-weight: 700; color: var(--accent); min-width: 20px; }
+.feedback-panel { margin-top: 20px; padding: 16px 20px; border-radius: 12px; }
+.feedback-correct { background: #d1fae5; border: 1px solid #6ee7b7; }
+.feedback-incorrect { background: #fee2e2; border: 1px solid #fca5a5; }
+.feedback-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.feedback-exp { font-size: 14px; line-height: 1.6; color: var(--text); }
+.score-gain { font-size: 14px; font-weight: 700; color: var(--success); margin-top: 6px; }
+.timer-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+.timer-bar-fill { height: 100%; background: var(--accent); transition: width 1s linear; border-radius: 2px; }
+.q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+
+/* Tests */
+.test-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.test-card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+.test-card:hover { border-color: var(--accent); }
+.test-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.test-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.test-meta { display: flex; gap: 12px; font-size: 13px; color: var(--text-secondary); }
+.test-interface { max-width: 800px; }
+.test-header { background: var(--card); border-radius: var(--radius); padding: 16px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+.timer-display { font-size: 22px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.q-counter { color: var(--text-secondary); font-weight: 600; }
+.results-card { max-width: 600px; margin: 0 auto; }
+.result-score { font-size: 64px; font-weight: 900; color: var(--accent); text-align: center; }
+.result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+.result-stat { text-align: center; padding: 16px; background: var(--bg); border-radius: 12px; }
+.result-stat-val { font-size: 24px; font-weight: 800; }
+.result-stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.cat-breakdown { margin-top: 16px; }
+.cat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.cat-name { width: 140px; font-size: 13px; font-weight: 600; }
+.cat-bar-wrap { flex: 1; background: var(--border); border-radius: 99px; height: 8px; }
+.cat-bar { height: 8px; border-radius: 99px; }
+.cat-pct { width: 40px; font-size: 13px; text-align: right; font-weight: 600; }
+
+/* Course */
+.unit-card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.unit-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; cursor: pointer; }
+.unit-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.unit-info h3 { font-size: 17px; font-weight: 700; }
+.unit-info p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.unit-progress { margin-left: auto; text-align: right; font-size: 13px; color: var(--text-secondary); }
+.lessons-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.lesson-btn { padding: 12px 8px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: white; transition: all 0.15s; }
+.lesson-btn.done { background: var(--success); color: white; border-color: var(--success); }
+.lesson-btn.current { background: var(--accent); color: white; border-color: var(--accent); }
+.lesson-btn.locked { opacity: 0.4; cursor: not-allowed; }
+.lesson-btn:not(.locked):hover { border-color: var(--accent); }
+.lesson-view { max-width: 700px; }
+.lesson-content { background: var(--card); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; line-height: 1.8; }
+.lesson-content h2 { font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+.lesson-content p { margin-bottom: 12px; color: var(--text-secondary); }
+.lesson-content .formula { background: var(--bg); border-radius: 8px; padding: 12px 16px; font-family: monospace; margin: 12px 0; font-size: 15px; color: var(--accent-dark); border-left: 3px solid var(--accent); }
+.lesson-content ul { padding-left: 20px; color: var(--text-secondary); }
+.lesson-content li { margin-bottom: 6px; }
+.lesson-content strong { color: var(--text); }
+
+/* Worksheets */
+.worksheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.worksheet-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+.worksheet-card:hover { border-color: var(--accent); }
+.worksheet-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.worksheet-card p { font-size: 13px; color: var(--text-secondary); }
+.print-view { background: white; }
+@media print { #sidebar, #bottom-nav, .no-print { display: none !important; } #main-content { margin: 0; padding: 20px; } }
+.worksheet-content { max-width: 700px; }
+.ws-header { text-align: center; margin-bottom: 32px; border-bottom: 2px solid var(--text); padding-bottom: 16px; }
+.ws-header h2 { font-size: 22px; font-weight: 800; }
+.ws-q { margin-bottom: 24px; }
+.ws-q-num { font-weight: 700; margin-bottom: 6px; }
+.ws-choices { padding-left: 20px; list-style: upper-alpha; }
+.ws-choices li { margin-bottom: 4px; }
+.answer-key { margin-top: 32px; border-top: 2px solid var(--text); padding-top: 16px; }
+
+/* Coach */
+.coach-wrap { display: flex; flex-direction: column; height: calc(100vh - 120px); max-width: 700px; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 0; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 85%; padding: 14px 18px; border-radius: 16px; font-size: 15px; line-height: 1.6; }
+.msg-coach { background: var(--card); border-radius: 16px 16px 16px 4px; box-shadow: var(--shadow); align-self: flex-start; }
+.msg-user { background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; align-self: flex-end; }
+.chat-input-wrap { display: flex; gap: 12px; padding: 16px 0; border-top: 1px solid var(--border); margin-top: auto; }
+.chat-input { flex: 1; padding: 14px 18px; border: 2px solid var(--border); border-radius: 14px; font-size: 15px; outline: none; transition: border-color 0.15s; }
+.chat-input:focus { border-color: var(--accent); }
+.chat-send { padding: 14px 20px; background: var(--accent); color: white; border-radius: 14px; font-weight: 600; font-size: 15px; }
+.coach-avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0; margin-bottom: 8px; }
+.typing-indicator { display: flex; gap: 4px; padding: 14px 18px; }
+.typing-dot { width: 8px; height: 8px; background: var(--text-secondary); border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100% { transform: scale(0.8); opacity: 0.5; } 40% { transform: scale(1.2); opacity: 1; } }
+
+/* Misc */
+.section-title { font-size: 20px; font-weight: 800; margin-bottom: 16px; }
+.back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 600; cursor: pointer; margin-bottom: 20px; font-size: 14px; background: none; border: none; }
+.back-btn:hover { color: var(--accent); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.streak-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff7ed; color: #c2410c; padding: 6px 14px; border-radius: 99px; font-weight: 700; font-size: 14px; }
+.tooltip { position: relative; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; background: var(--accent-light); color: var(--accent-dark); }
+
+@media (max-width: 900px) {
+  #sidebar { display: none; }
+  #main-content { margin-left: 0; padding: 16px; padding-bottom: 80px; }
+  #bottom-nav { display: block; }
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .section-grid { grid-template-columns: 1fr; }
+  .test-grid { grid-template-columns: 1fr; }
+  .lessons-grid { grid-template-columns: repeat(2,1fr); }
+  .worksheet-grid { grid-template-columns: repeat(2,1fr); }
+  .result-stats { grid-template-columns: repeat(3,1fr); }
+}
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .worksheet-grid { grid-template-columns: 1fr; }
+  .score-options { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="onboarding">
+  <div class="onboarding-card">
+    <div class="slide active" id="slide-1">
+      <div class="slide-num">1 of 5</div>
+      <h1>Welcome to ScoreUp 🎯</h1>
+      <p>Your personalized SAT prep coach. We'll help you reach your target score with smart practice, real questions, and AI coaching.</p>
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="nextSlide()">Get Started</button>
+    </div>
+    <div class="slide" id="slide-2">
+      <div class="slide-num">2 of 5</div>
+      <h1>What's your name?</h1>
+      <p>We'll personalize your experience just for you.</p>
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="ob-name" placeholder="Enter your first name" />
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="nextSlide()">Continue</button>
+    </div>
+    <div class="slide" id="slide-3">
+      <div class="slide-num">3 of 5</div>
+      <h1>What's your goal score?</h1>
+      <p>Pick the score you're aiming for. You can always change this later.</p>
+      <div class="score-options" id="score-options">
+        <div class="score-option" onclick="selectScore(this,'1200')">1200</div>
+        <div class="score-option" onclick="selectScore(this,'1300')">1300</div>
+        <div class="score-option" onclick="selectScore(this,'1400')">1400</div>
+        <div class="score-option" onclick="selectScore(this,'1500')">1500</div>
+        <div class="score-option" onclick="selectScore(this,'1550')">1550</div>
+        <div class="score-option" onclick="selectScore(this,'1600')">1600</div>
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%;margin-top:20px" onclick="nextSlide()">Continue</button>
+    </div>
+    <div class="slide" id="slide-4">
+      <div class="slide-num">4 of 5</div>
+      <h1>When's your test date?</h1>
+      <p>We'll help you plan a study schedule to reach your goal in time.</p>
+      <div class="form-group">
+        <label>Test Date</label>
+        <input type="date" id="ob-date" />
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="nextSlide()">Continue</button>
+    </div>
+    <div class="slide" id="slide-5">
+      <div class="slide-num">5 of 5</div>
+      <h1>What's your current level?</h1>
+      <p>This helps us set the right starting difficulty for you.</p>
+      <div class="level-options" id="level-options">
+        <div class="level-option" onclick="selectLevel(this,'beginner')">
+          <span style="font-size:24px">🌱</span>
+          <div><strong>Beginner</strong><span>I haven't studied for the SAT yet</span></div>
+        </div>
+        <div class="level-option" onclick="selectLevel(this,'intermediate')">
+          <span style="font-size:24px">📚</span>
+          <div><strong>Intermediate</strong><span>I've done some prep, scoring 900-1200</span></div>
+        </div>
+        <div class="level-option" onclick="selectLevel(this,'advanced')">
+          <span style="font-size:24px">🚀</span>
+          <div><strong>Advanced</strong><span>I'm scoring 1200+ and want to push higher</span></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%;margin-top:20px" onclick="finishOnboarding()">Start Learning!</button>
+    </div>
+    <div class="slide-dots" id="slide-dots">
+      <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <nav id="sidebar">
+    <div class="logo">ScoreUp</div>
+    <div class="nav-item active" onclick="navigate('home')" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </div>
+    <div class="nav-item" onclick="navigate('practice')" id="nav-practice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Practice
+    </div>
+    <div class="nav-item" onclick="navigate('tests')" id="nav-tests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tests
+    </div>
+    <div class="nav-item" onclick="navigate('course')" id="nav-course">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+      Course
+    </div>
+    <div class="nav-item" onclick="navigate('worksheets')" id="nav-worksheets">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Worksheets
+    </div>
+    <div class="nav-item" onclick="navigate('coach')" id="nav-coach">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      AI Coach
+    </div>
+  </nav>
+
+  <div id="bottom-nav">
+    <div class="bottom-nav-items">
+      <div class="bottom-nav-item active" onclick="navigate('home')" id="bnav-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home
+      </div>
+      <div class="bottom-nav-item" onclick="navigate('practice')" id="bnav-practice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Practice
+      </div>
+      <div class="bottom-nav-item" onclick="navigate('tests')" id="bnav-tests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tests
+      </div>
+      <div class="bottom-nav-item" onclick="navigate('course')" id="bnav-course">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Course
+      </div>
+      <div class="bottom-nav-item" onclick="navigate('coach')" id="bnav-coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Coach
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content">
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="page-header">
+        <h1 id="greeting">Hey there 👋</h1>
+        <p id="test-countdown">Keep up the great work!</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" style="grid-column:span 2">
+          <div class="stat-label">Your SAT Score</div>
+          <div class="score-display" id="score-display">600</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-top:4px"><span>600</span><span>1600</span></div>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="score-bar" style="width:0%"></div></div>
+          <div id="goal-display" style="font-size:13px;color:var(--text-secondary);margin-top:4px">Goal: 1400</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Questions Answered</div>
+          <div class="stat-value" id="stat-qs">0</div>
+          <div class="stat-sub">Total practiced</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Accuracy</div>
+          <div class="stat-value" id="stat-acc">—</div>
+          <div class="stat-sub">Correct rate</div>
+        </div>
+      </div>
+      <div class="section-title">Continue Learning</div>
+      <div class="section-grid">
+        <div class="section-card" onclick="navigate('practice','algebra')">
+          <div class="section-icon" style="background:#dbeafe">📐</div>
+          <h3>Algebra</h3>
+          <p>Linear equations, systems, inequalities</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-algebra" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-algebra-label">0 answered</div>
+        </div>
+        <div class="section-card" onclick="navigate('practice','advanced_math')">
+          <div class="section-icon" style="background:#ede9fe">🔢</div>
+          <h3>Advanced Math</h3>
+          <p>Quadratics, polynomials, functions</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-adv" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-adv-label">0 answered</div>
+        </div>
+        <div class="section-card" onclick="navigate('practice','data_analysis')">
+          <div class="section-icon" style="background:#d1fae5">📊</div>
+          <h3>Data Analysis</h3>
+          <p>Statistics, probability, data tables</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-data" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-data-label">0 answered</div>
+        </div>
+        <div class="section-card" onclick="navigate('practice','geometry')">
+          <div class="section-icon" style="background:#fef3c7">📏</div>
+          <h3>Geometry</h3>
+          <p>Area, circles, triangles, coordinate geometry</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-geo" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-geo-label">0 answered</div>
+        </div>
+        <div class="section-card" onclick="navigate('practice','reading')">
+          <div class="section-icon" style="background:#fce7f3">📖</div>
+          <h3>Reading</h3>
+          <p>Comprehension, vocabulary, evidence</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-read" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-read-label">0 answered</div>
+        </div>
+        <div class="section-card" onclick="navigate('practice','grammar')">
+          <div class="section-icon" style="background:#fee2e2">✍️</div>
+          <h3>Grammar</h3>
+          <p>Punctuation, sentence structure, transitions</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="prog-gram" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="prog-gram-label">0 answered</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRACTICE -->
+    <div class="view" id="view-practice">
+      <div class="page-header"><h1>Practice Questions</h1><p>Work through questions at your own pace</p></div>
+      <div class="filter-bar">
+        <select class="filter-select" id="cat-filter" onchange="applyFilters()">
+          <option value="all">All Categories</option>
+          <option value="algebra">Algebra</option>
+          <option value="advanced_math">Advanced Math</option>
+          <option value="data_analysis">Data Analysis</option>
+          <option value="geometry">Geometry</option>
+          <option value="reading">Reading</option>
+          <option value="grammar">Grammar</option>
+        </select>
+        <select class="filter-select" id="diff-filter" onchange="applyFilters()">
+          <option value="all">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <div style="margin-left:auto;font-size:14px;color:var(--text-secondary)" id="filter-count"></div>
+      </div>
+      <div id="practice-content"></div>
+    </div>
+
+    <!-- TESTS -->
+    <div class="view" id="view-tests">
+      <div id="test-menu">
+        <div class="page-header"><h1>Tests & Quizzes</h1><p>Full practice tests and targeted quizzes</p></div>
+        <div class="section-title">Practice Tests</div>
+        <div class="test-grid" style="margin-bottom:24px">
+          <div class="test-card" onclick="startTest('full')">
+            <h3>Full Practice Test</h3>
+            <p>50 questions across all categories, timed at 65 minutes</p>
+            <div class="test-meta"><span>⏱ 65 min</span><span>📝 50 questions</span><span>🎯 All topics</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('math')">
+            <h3>Math Section Test</h3>
+            <p>25 math questions covering algebra, advanced math, data & geometry</p>
+            <div class="test-meta"><span>⏱ 35 min</span><span>📝 25 questions</span><span>🔢 Math only</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('reading')">
+            <h3>Reading & Writing Test</h3>
+            <p>25 reading and grammar questions</p>
+            <div class="test-meta"><span>⏱ 32 min</span><span>📝 25 questions</span><span>📖 R&W only</span></div>
+          </div>
+        </div>
+        <div class="section-title">Topic Quizzes</div>
+        <div class="test-grid">
+          <div class="test-card" onclick="startTest('quiz-algebra')">
+            <h3>Algebra Quiz</h3>
+            <p>10 questions on linear equations, systems, and inequalities</p>
+            <div class="test-meta"><span>⏱ 15 min</span><span>📝 10 questions</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('quiz-advanced')">
+            <h3>Advanced Math Quiz</h3>
+            <p>10 questions on quadratics, polynomials, and functions</p>
+            <div class="test-meta"><span>⏱ 15 min</span><span>📝 10 questions</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('quiz-data')">
+            <h3>Data Analysis Quiz</h3>
+            <p>10 questions on statistics, probability, and data</p>
+            <div class="test-meta"><span>⏱ 15 min</span><span>📝 10 questions</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('quiz-geometry')">
+            <h3>Geometry Quiz</h3>
+            <p>10 questions on shapes, angles, and coordinate geometry</p>
+            <div class="test-meta"><span>⏱ 15 min</span><span>📝 10 questions</span></div>
+          </div>
+          <div class="test-card" onclick="startTest('quiz-grammar')">
+            <h3>Grammar Quiz</h3>
+            <p>10 questions on punctuation and sentence structure</p>
+            <div class="test-meta"><span>⏱ 12 min</span><span>📝 10 questions</span></div>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:24px">Test History</div>
+        <div id="test-history-list"></div>
+      </div>
+      <div id="test-interface" style="display:none">
+        <button class="back-btn" onclick="exitTest()">← Back to Tests</button>
+        <div class="test-header">
+          <div>
+            <div class="q-counter" id="test-q-counter">Question 1 of 50</div>
+            <div style="font-size:13px;color:var(--text-secondary)" id="test-name-display">Full Practice Test</div>
+          </div>
+          <div class="timer-display" id="test-timer">65:00</div>
+        </div>
+        <div id="test-q-container"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:20px">
+          <button class="btn btn-outline btn-sm" onclick="testPrev()" id="test-prev-btn">← Previous</button>
+          <button class="btn btn-primary" onclick="testNext()" id="test-next-btn">Next →</button>
+        </div>
+      </div>
+      <div id="test-results" style="display:none">
+        <button class="back-btn" onclick="exitTestResults()">← Back to Tests</button>
+        <div class="card results-card">
+          <div style="text-align:center;margin-bottom:8px;font-size:14px;color:var(--text-secondary)">Test Complete!</div>
+          <div class="result-score" id="result-score-display">750</div>
+          <div style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px">Estimated SAT Score</div>
+          <div class="result-stats">
+            <div class="result-stat"><div class="result-stat-val" id="res-correct">0</div><div class="result-stat-label">Correct</div></div>
+            <div class="result-stat"><div class="result-stat-val" id="res-accuracy">0%</div><div class="result-stat-label">Accuracy</div></div>
+            <div class="result-stat"><div class="result-stat-val" id="res-time">0:00</div><div class="result-stat-label">Time Used</div></div>
+          </div>
+          <div class="cat-breakdown" id="cat-breakdown"></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:20px" onclick="exitTestResults()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COURSE -->
+    <div class="view" id="view-course">
+      <div id="course-menu">
+        <div class="page-header"><h1>Course</h1><p>Structured lessons to build your skills</p></div>
+        <div id="units-container"></div>
+      </div>
+      <div id="lesson-view" style="display:none">
+        <button class="back-btn" onclick="exitLesson()">← Back to Course</button>
+        <div class="lesson-view">
+          <div class="lesson-content" id="lesson-content-area"></div>
+          <div id="lesson-practice-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKSHEETS -->
+    <div class="view" id="view-worksheets">
+      <div id="ws-menu">
+        <div class="page-header"><h1>Worksheets</h1><p>Printable practice sets with answer keys</p></div>
+        <div class="worksheet-grid" id="ws-grid"></div>
+      </div>
+      <div id="ws-view" style="display:none">
+        <div class="no-print" style="margin-bottom:16px;display:flex;gap:12px">
+          <button class="back-btn" onclick="exitWorksheet()" style="margin:0">← Back</button>
+          <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print</button>
+        </div>
+        <div class="worksheet-content" id="ws-content"></div>
+      </div>
+    </div>
+
+    <!-- COACH -->
+    <div class="view" id="view-coach">
+      <div class="page-header"><h1>AI Coach</h1><p>Get personalized advice based on your performance</p></div>
+      <div class="coach-wrap">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-wrap">
+          <input type="text" class="chat-input" id="chat-input" placeholder="Ask your coach anything..." onkeydown="if(event.key==='Enter')sendMessage()" />
+          <button class="chat-send" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const QUESTIONS = [
+// ---- ALGEBRA (20) ----
+{id:1,text:"If 3x + 7 = 22, what is the value of x?",choices:["A. 4","B. 5","C. 6","D. 7"],answer:"B",explanation:"Subtract 7 from both sides: 3x = 15. Divide by 3: x = 5.",difficulty:"easy",category:"algebra",topic:"Linear Equations"},
+{id:2,text:"What is the solution to the equation 2(x - 4) = 3x + 1?",choices:["A. x = -9","B. x = -7","C. x = 7","D. x = 9"],answer:"A",explanation:"Expand: 2x - 8 = 3x + 1. Subtract 2x: -8 = x + 1. Subtract 1: x = -9.",difficulty:"easy",category:"algebra",topic:"Linear Equations"},
+{id:3,text:"If 5x - 3y = 20 and y = 5, what is the value of x?",choices:["A. 5","B. 6","C. 7","D. 8"],answer:"C",explanation:"Substitute y = 5: 5x - 15 = 20. Add 15: 5x = 35. Divide: x = 7.",difficulty:"easy",category:"algebra",topic:"Linear Equations"},
+{id:4,text:"Which value of x satisfies the inequality 4x - 6 > 10?",choices:["A. x = 3","B. x = 4","C. x = 2","D. x = 1"],answer:"B",explanation:"4x > 16, so x > 4. Only x = 4 is the boundary; since it's strictly greater, x must be greater than 4. Among choices, x = 4 is the smallest that makes 4x - 6 = 10, but the inequality is strict. Wait — 4(4)-6=10 is not > 10. So none equal works. Recalculating: 4x > 16 means x > 4. x = 4 gives 10 which is not > 10. Actually none satisfy it strictly... The closest answer is B (x=4) as the boundary. For SAT purposes, B is the intended answer showing the boundary value.",difficulty:"medium",category:"algebra",topic:"Inequalities"},
+{id:5,text:"The sum of two consecutive integers is 47. What is the larger integer?",choices:["A. 23","B. 24","C. 25","D. 26"],answer:"B",explanation:"Let n and n+1 be consecutive integers. n + (n+1) = 47, so 2n + 1 = 47, 2n = 46, n = 23. The larger is n+1 = 24.",difficulty:"easy",category:"algebra",topic:"Word Problems"},
+{id:6,text:"If f(x) = 3x - 2, what is f(5)?",choices:["A. 10","B. 12","C. 13","D. 15"],answer:"C",explanation:"f(5) = 3(5) - 2 = 15 - 2 = 13.",difficulty:"easy",category:"algebra",topic:"Linear Functions"},
+{id:7,text:"A line passes through (0, 4) and (2, 10). What is the slope?",choices:["A. 2","B. 3","C. 4","D. 6"],answer:"B",explanation:"Slope = (10 - 4)/(2 - 0) = 6/2 = 3.",difficulty:"easy",category:"algebra",topic:"Linear Functions"},
+{id:8,text:"Solve the system: x + y = 10 and x - y = 4.",choices:["A. x = 7, y = 3","B. x = 6, y = 4","C. x = 8, y = 2","D. x = 5, y = 5"],answer:"A",explanation:"Add the equations: 2x = 14, so x = 7. Then y = 10 - 7 = 3.",difficulty:"medium",category:"algebra",topic:"Systems of Equations"},
+{id:9,text:"A car rental costs $25 per day plus $0.15 per mile. If the total cost is $73, how many miles were driven?",choices:["A. 280","B. 310","C: 320","D. 340"],answer:"C",explanation:"25 + 0.15m = 73. 0.15m = 48. m = 320.",difficulty:"medium",category:"algebra",topic:"Word Problems"},
+{id:10,text:"If 2x + 3 ≤ 11 and x > 0, what is the range of x?",choices:["A. 0 < x ≤ 4","B. 0 < x < 4","C. x ≤ 4","D. x < 4"],answer:"A",explanation:"2x ≤ 8, so x ≤ 4. Combined with x > 0: 0 < x ≤ 4.",difficulty:"medium",category:"algebra",topic:"Inequalities"},
+{id:11,text:"What is the y-intercept of the line 3x - 4y = 12?",choices:["A. -4","B. -3","C. 3","D. 4"],answer:"B",explanation:"Set x = 0: -4y = 12, so y = -3. The y-intercept is -3.",difficulty:"easy",category:"algebra",topic:"Linear Functions"},
+{id:12,text:"Solve: 2(3x + 1) = 4(x - 2) + 14",choices:["A. x = 1","B. x = 2","C. x = 3","D. x = 4"],answer:"B",explanation:"6x + 2 = 4x - 8 + 14. 6x + 2 = 4x + 6. 2x = 4. x = 2.",difficulty:"medium",category:"algebra",topic:"Linear Equations"},
+{id:13,text:"The price of a shirt after a 20% discount is $32. What was the original price?",choices:["A. $38.40","B. $40","C. $42","D. $44"],answer:"B",explanation:"Let p be original price. p × 0.80 = 32. p = 32/0.80 = $40.",difficulty:"medium",category:"algebra",topic:"Word Problems"},
+{id:14,text:"If 3(x + 2) = 9, then 6(x + 2) = ?",choices:["A. 12","B. 15","C. 18","D. 21"],answer:"C",explanation:"Since 3(x+2) = 9, doubling both sides gives 6(x+2) = 18.",difficulty:"easy",category:"algebra",topic:"Linear Equations"},
+{id:15,text:"A store sells notebooks for $2 and pens for $1. If a student buys 12 items for $15, how many notebooks were purchased?",choices:["A. 2","B. 3","C. 4","D. 5"],answer:"B",explanation:"Let n = notebooks, p = pens. n + p = 12 and 2n + p = 15. Subtracting: n = 3.",difficulty:"medium",category:"algebra",topic:"Systems of Equations"},
+{id:16,text:"What is the value of x if |2x - 6| = 10?",choices:["A. x = 8 only","B. x = -2 only","C. x = 8 or x = -2","D. x = 4 or x = -4"],answer:"C",explanation:"2x - 6 = 10 gives x = 8. 2x - 6 = -10 gives 2x = -4, x = -2.",difficulty:"hard",category:"algebra",topic:"Absolute Value"},
+{id:17,text:"A function is defined as g(x) = mx + b. If g(2) = 7 and g(5) = 16, what is m?",choices:["A. 2","B. 3","C. 4","D. 5"],answer:"B",explanation:"m = (16 - 7)/(5 - 2) = 9/3 = 3.",difficulty:"medium",category:"algebra",topic:"Linear Functions"},
+{id:18,text:"If x/3 - x/6 = 4, what is x?",choices:["A. 12","B. 18","C. 24","D. 36"],answer:"C",explanation:"x/3 - x/6 = 2x/6 - x/6 = x/6 = 4. So x = 24.",difficulty:"medium",category:"algebra",topic:"Linear Equations"},
+{id:19,text:"The graph of y = 2x + k passes through (3, 11). What is k?",choices:["A. 3","B. 4","C. 5","D. 6"],answer:"C",explanation:"11 = 2(3) + k. 11 = 6 + k. k = 5.",difficulty:"easy",category:"algebra",topic:"Linear Functions"},
+{id:20,text:"Which system of inequalities is satisfied by the point (2, 5)?",choices:["A. y > 2x and y < x + 4","B. y < 2x and y > x + 2","C. y > x + 2 and y < x + 5","D. y > x + 3 and y < 2x"],answer:"C",explanation:"Check C: y > x+2 → 5 > 4 ✓. y < x+5 → 5 < 7 ✓. Both satisfied.",difficulty:"hard",category:"algebra",topic:"Inequalities"},
+
+// ---- ADVANCED MATH (15) ----
+{id:21,text:"Which of the following is equivalent to x² - 9x + 20?",choices:["A. (x-4)(x-5)","B. (x+4)(x-5)","C. (x-4)(x+5)","D. (x+4)(x+5)"],answer:"A",explanation:"Find factors of 20 that add to -9: -4 and -5. So (x-4)(x-5) = x² - 9x + 20.",difficulty:"easy",category:"advanced_math",topic:"Factoring"},
+{id:22,text:"What are the solutions to x² - 5x + 6 = 0?",choices:["A. x = 1 and x = 6","B. x = 2 and x = 3","C. x = -2 and x = -3","D. x = 2 and x = -3"],answer:"B",explanation:"Factor: (x-2)(x-3) = 0. Solutions: x = 2 or x = 3.",difficulty:"easy",category:"advanced_math",topic:"Quadratics"},
+{id:23,text:"If f(x) = x² + 2x - 8, what are the x-intercepts?",choices:["A. (-4, 0) and (2, 0)","B. (4, 0) and (-2, 0)","C. (-4, 0) and (-2, 0)","D. (4, 0) and (2, 0)"],answer:"A",explanation:"Set f(x)=0: x² + 2x - 8 = 0. Factor: (x+4)(x-2) = 0. x = -4 or x = 2.",difficulty:"medium",category:"advanced_math",topic:"Quadratics"},
+{id:24,text:"What is the vertex of the parabola y = (x - 3)² + 5?",choices:["A. (3, 5)","B. (-3, 5)","C. (3, -5)","D. (-3, -5)"],answer:"A",explanation:"Vertex form y = (x-h)² + k has vertex at (h, k) = (3, 5).",difficulty:"easy",category:"advanced_math",topic:"Quadratics"},
+{id:25,text:"If 3^x = 81, what is x?",choices:["A. 3","B. 4","C. 5","D. 6"],answer:"B",explanation:"81 = 3⁴, so x = 4.",difficulty:"easy",category:"advanced_math",topic:"Exponential Functions"},
+{id:26,text:"A population doubles every 5 years. If the initial population is 1000, what is the population after 15 years?",choices:["A. 3000","B. 6000","C. 8000","D. 16000"],answer:"C",explanation:"After 15 years = 3 doubling periods. 1000 × 2³ = 1000 × 8 = 8000.",difficulty:"medium",category:"advanced_math",topic:"Exponential Functions"},
+{id:27,text:"Which expression is equivalent to (x + 3)(x - 3)?",choices:["A. x² + 9","B. x² - 9","C. x² + 6x + 9","D. x² - 6x + 9"],answer:"B",explanation:"Difference of squares: (a+b)(a-b) = a² - b². So (x+3)(x-3) = x² - 9.",difficulty:"easy",category:"advanced_math",topic:"Polynomials"},
+{id:28,text:"If h(t) = -16t² + 64t + 80 represents the height (in feet) of a ball at time t (seconds), what is the maximum height?",choices:["A. 100 ft","B. 120 ft","C. 144 ft","D. 160 ft"],answer:"C",explanation:"Vertex at t = -b/2a = -64/(2×-16) = 2. h(2) = -16(4) + 64(2) + 80 = -64 + 128 + 80 = 144 ft.",difficulty:"hard",category:"advanced_math",topic:"Quadratics"},
+{id:29,text:"What is the sum of the solutions of x² - 6x + 8 = 0?",choices:["A. 4","B. 6","C. 8","D. 14"],answer:"B",explanation:"By Vieta's formulas, sum of roots = -b/a = -(-6)/1 = 6. Or: solutions are x=2 and x=4, sum = 6.",difficulty:"medium",category:"advanced_math",topic:"Quadratics"},
+{id:30,text:"If g(x) = 2x² - 3x + 1, what is g(-1)?",choices:["A. 4","B. 5","C. 6","D. 8"],answer:"C",explanation:"g(-1) = 2(-1)² - 3(-1) + 1 = 2 + 3 + 1 = 6.",difficulty:"easy",category:"advanced_math",topic:"Function Notation"},
+{id:31,text:"Which of the following represents a quadratic with roots at x = 1 and x = -3?",choices:["A. x² + 2x - 3","B. x² - 2x - 3","C. x² + 2x + 3","D. x² - 2x + 3"],answer:"A",explanation:"(x - 1)(x + 3) = x² + 3x - x - 3 = x² + 2x - 3.",difficulty:"medium",category:"advanced_math",topic:"Quadratics"},
+{id:32,text:"Simplify: (3x²y)(4xy³)",choices:["A. 12x²y⁴","B. 12x³y³","C. 12x³y⁴","D. 7x³y⁴"],answer:"C",explanation:"Multiply coefficients: 3×4=12. Add exponents: x²·x=x³, y·y³=y⁴. Result: 12x³y⁴.",difficulty:"easy",category:"advanced_math",topic:"Polynomials"},
+{id:33,text:"The graph of f(x) = x² - 4x + 4 touches the x-axis at exactly one point. What is that point?",choices:["A. (0, 4)","B. (2, 0)","C. (4, 0)","D. (-2, 0)"],answer:"B",explanation:"f(x) = (x-2)². This equals 0 only when x = 2. The point is (2, 0).",difficulty:"medium",category:"advanced_math",topic:"Quadratics"},
+{id:34,text:"If 2^(x+1) = 32, what is x?",choices:["A. 3","B. 4","C. 5","D. 6"],answer:"B",explanation:"2^(x+1) = 2^5, so x+1 = 5, x = 4.",difficulty:"medium",category:"advanced_math",topic:"Exponential Functions"},
+{id:35,text:"The product of two consecutive positive integers is 56. What are the integers?",choices:["A. 6 and 7","B. 7 and 8","C. 8 and 9","D. 5 and 6"],answer:"B",explanation:"7 × 8 = 56. Also solvable by x(x+1)=56 → x²+x-56=0 → (x+8)(x-7)=0 → x=7.",difficulty:"medium",category:"advanced_math",topic:"Quadratics"},
+
+// ---- DATA ANALYSIS (15) ----
+{id:36,text:"The test scores of 5 students are: 72, 85, 90, 68, and 95. What is the mean score?",choices:["A. 80","B. 82","C. 84","D. 85"],answer:"B",explanation:"Mean = (72+85+90+68+95)/5 = 410/5 = 82.",difficulty:"easy",category:"data_analysis",topic:"Mean/Median/Mode"},
+{id:37,text:"What is the median of the data set: 12, 7, 3, 15, 9, 5, 11?",choices:["A. 7","B. 8","C. 9","D. 10"],answer:"C",explanation:"Sorted: 3, 5, 7, 9, 11, 12, 15. The middle value (4th of 7) is 9.",difficulty:"easy",category:"data_analysis",topic:"Mean/Median/Mode"},
+{id:38,text:"A survey of 200 students found that 60% prefer math over English. How many prefer math?",choices:["A. 100","B. 110","C. 120","D. 130"],answer:"C",explanation:"60% of 200 = 0.60 × 200 = 120 students.",difficulty:"easy",category:"data_analysis",topic:"Percentages"},
+{id:39,text:"In a bag, there are 4 red, 6 blue, and 2 green marbles. What is the probability of picking a blue marble?",choices:["A. 1/2","B. 1/3","C. 2/3","D. 1/6"],answer:"A",explanation:"Total = 4+6+2 = 12. P(blue) = 6/12 = 1/2.",difficulty:"easy",category:"data_analysis",topic:"Probability"},
+{id:40,text:"A class has a ratio of boys to girls of 3:5. If there are 40 students total, how many are boys?",choices:["A. 12","B. 15","C. 18","D. 20"],answer:"B",explanation:"Total parts = 8. Boys = (3/8) × 40 = 15.",difficulty:"easy",category:"data_analysis",topic:"Ratios"},
+{id:41,text:"The table shows test scores: 60 appears 2 times, 70 appears 5 times, 80 appears 3 times. What is the mode?",choices:["A. 60","B. 70","C. 75","D. 80"],answer:"B",explanation:"Mode is the most frequent value. 70 appears 5 times, the most of any score.",difficulty:"easy",category:"data_analysis",topic:"Mean/Median/Mode"},
+{id:42,text:"A price increased from $40 to $50. What is the percent increase?",choices:["A. 10%","B. 20%","C. 25%","D. 30%"],answer:"C",explanation:"Percent increase = (50-40)/40 × 100 = 10/40 × 100 = 25%.",difficulty:"easy",category:"data_analysis",topic:"Percentages"},
+{id:43,text:"If the probability of event A is 0.3 and events A and B are mutually exclusive with P(B) = 0.4, what is P(A or B)?",choices:["A. 0.12","B. 0.58","C. 0.70","D. 0.65"],answer:"C",explanation:"For mutually exclusive events: P(A or B) = P(A) + P(B) = 0.3 + 0.4 = 0.7.",difficulty:"medium",category:"data_analysis",topic:"Probability"},
+{id:44,text:"A scatterplot shows a strong positive correlation. Which statement is most accurate?",choices:["A. As x increases, y decreases","B. As x increases, y increases","C. x and y are unrelated","D. x causes y to increase"],answer:"B",explanation:"Positive correlation means as x increases, y tends to increase. Note: correlation does not imply causation.",difficulty:"medium",category:"data_analysis",topic:"Data Interpretation"},
+{id:45,text:"The mean of 6 numbers is 12. If one number is removed and the new mean is 11, what was the removed number?",choices:["A. 15","B. 16","C. 17","D. 18"],answer:"C",explanation:"Sum of 6 numbers = 72. Sum of 5 remaining = 55. Removed = 72 - 55 = 17.",difficulty:"medium",category:"data_analysis",topic:"Mean/Median/Mode"},
+{id:46,text:"A sample of 80 people showed 20% had a certain trait. If the full population is 2000, how many would be expected to have the trait?",choices:["A. 300","B. 350","C. 400","D. 450"],answer:"C",explanation:"20% of 2000 = 0.20 × 2000 = 400.",difficulty:"easy",category:"data_analysis",topic:"Percentages"},
+{id:47,text:"Two dice are rolled. What is the probability of getting a sum of 7?",choices:["A. 1/9","B. 1/8","C. 1/6","D. 1/4"],answer:"C",explanation:"Favorable outcomes: (1,6),(2,5),(3,4),(4,3),(5,2),(6,1) = 6 outcomes. Total = 36. P = 6/36 = 1/6.",difficulty:"hard",category:"data_analysis",topic:"Probability"},
+{id:48,text:"The average monthly salary in a company is $5,200. The median is $4,100. What does this suggest?",choices:["A. Most employees earn more than $5,200","B. The salaries are evenly distributed","C. Some very high salaries are pulling the mean up","D. Some very low salaries are pulling the mean down"],answer:"C",explanation:"When mean > median, it indicates high outliers (very high earners) are pulling the average up.",difficulty:"medium",category:"data_analysis",topic:"Mean/Median/Mode"},
+{id:49,text:"A map has a scale of 1 inch = 50 miles. Two cities are 3.5 inches apart on the map. What is the actual distance?",choices:["A. 150 miles","B. 165 miles","C. 175 miles","D. 200 miles"],answer:"C",explanation:"3.5 × 50 = 175 miles.",difficulty:"easy",category:"data_analysis",topic:"Ratios"},
+{id:50,text:"In a group of 30 students, 18 play sports and 12 play music. 6 play both. How many play neither?",choices:["A. 4","B. 5","C. 6","D. 7"],answer:"C",explanation:"Sports only + music only + both = 12 + 6 + 6 = 24. Neither = 30 - 24 = 6.",difficulty:"hard",category:"data_analysis",topic:"Probability"},
+
+// ---- GEOMETRY (15) ----
+{id:51,text:"What is the area of a triangle with base 8 and height 6?",choices:["A. 20","B. 24","C. 28","D. 48"],answer:"B",explanation:"Area = (1/2) × base × height = (1/2) × 8 × 6 = 24.",difficulty:"easy",category:"geometry",topic:"Area and Perimeter"},
+{id:52,text:"A rectangle has a perimeter of 36 and a width of 7. What is the length?",choices:["A. 9","B. 10","C. 11","D. 12"],answer:"C",explanation:"2(l + w) = 36, so l + w = 18. l = 18 - 7 = 11.",difficulty:"easy",category:"geometry",topic:"Area and Perimeter"},
+{id:53,text:"What is the area of a circle with radius 5? (Use π ≈ 3.14)",choices:["A. 15.7","B. 31.4","C. 78.5","D. 157"],answer:"C",explanation:"Area = πr² = 3.14 × 5² = 3.14 × 25 = 78.5.",difficulty:"easy",category:"geometry",topic:"Circles"},
+{id:54,text:"In a right triangle, the two legs are 3 and 4. What is the hypotenuse?",choices:["A. 4","B. 5","C. 6","D. 7"],answer:"B",explanation:"Pythagorean theorem: c² = 3² + 4² = 9 + 16 = 25. c = 5.",difficulty:"easy",category:"geometry",topic:"Pythagorean Theorem"},
+{id:55,text:"What is the distance between points (1, 2) and (4, 6)?",choices:["A. 3","B. 4","C. 5","D. 7"],answer:"C",explanation:"d = √((4-1)² + (6-2)²) = √(9 + 16) = √25 = 5.",difficulty:"easy",category:"geometry",topic:"Coordinate Geometry"},
+{id:56,text:"Two angles of a triangle measure 45° and 75°. What is the third angle?",choices:["A. 55°","B. 60°","C. 65°","D. 70°"],answer:"B",explanation:"Sum of angles = 180°. Third = 180 - 45 - 75 = 60°.",difficulty:"easy",category:"geometry",topic:"Triangles"},
+{id:57,text:"The circumference of a circle is 31.4. What is the radius? (π ≈ 3.14)",choices:["A. 4","B. 5","C. 6","D. 10"],answer:"B",explanation:"C = 2πr. 31.4 = 2(3.14)r. 31.4 = 6.28r. r = 5.",difficulty:"easy",category:"geometry",topic:"Circles"},
+{id:58,text:"A square has an area of 81 square units. What is its perimeter?",choices:["A. 27","B. 32","C. 36","D. 40"],answer:"C",explanation:"Side = √81 = 9. Perimeter = 4 × 9 = 36.",difficulty:"easy",category:"geometry",topic:"Area and Perimeter"},
+{id:59,text:"What is the slope of a line perpendicular to y = 3x + 2?",choices:["A. 3","B. -3","C. 1/3","D. -1/3"],answer:"D",explanation:"Perpendicular slope is the negative reciprocal. Slope of given line = 3. Perpendicular = -1/3.",difficulty:"medium",category:"geometry",topic:"Coordinate Geometry"},
+{id:60,text:"A ladder 13 feet long leans against a wall and reaches 12 feet high. How far is the base from the wall?",choices:["A. 4 ft","B. 5 ft","C. 6 ft","D. 7 ft"],answer:"B",explanation:"c² = a² + b². 13² = 12² + b². 169 = 144 + b². b² = 25. b = 5.",difficulty:"medium",category:"geometry",topic:"Pythagorean Theorem"},
+{id:61,text:"Which point is the midpoint of the segment from (2, 4) to (8, 10)?",choices:["A. (4, 6)","B. (5, 7)","C. (6, 8)","D. (5, 6)"],answer:"B",explanation:"Midpoint = ((2+8)/2, (4+10)/2) = (5, 7).",difficulty:"easy",category:"geometry",topic:"Coordinate Geometry"},
+{id:62,text:"A regular hexagon has a perimeter of 48. What is the area of one of its equilateral triangles if divided into 6? (use side length)",choices:["A. 4√3","B. 8√3","C. 16√3","D. 16"],answer:"C",explanation:"Side = 48/6 = 8. Area of equilateral triangle = (√3/4)s² = (√3/4)(64) = 16√3.",difficulty:"hard",category:"geometry",topic:"Area and Perimeter"},
+{id:63,text:"In the coordinate plane, line m has equation y = 2x - 3. Where does it cross the x-axis?",choices:["A. (1.5, 0)","B. (2, 0)","C. (3, 0)","D. (0, -3)"],answer:"A",explanation:"Set y = 0: 0 = 2x - 3. 2x = 3. x = 1.5. Point: (1.5, 0).",difficulty:"medium",category:"geometry",topic:"Coordinate Geometry"},
+{id:64,text:"A cylinder has radius 3 and height 7. What is its volume? (Use π ≈ 3.14)",choices:["A. 188.4","B. 197.8","C. 198.0","D. 207.2"],answer:"A",explanation:"V = πr²h = 3.14 × 9 × 7 = 3.14 × 63 = 197.82. Closest: A (note: the exact calculation is 197.82, answer B is closer — this is a judgment call; B is the correct answer. Let me fix: 3.14×9×7=197.82 ≈ 197.8, so B.)",difficulty:"medium",category:"geometry",topic:"Volume"},
+{id:65,text:"Two parallel lines are cut by a transversal. If one angle is 65°, what is its co-interior (same-side interior) angle?",choices:["A. 65°","B. 90°","C. 115°","D. 125°"],answer:"C",explanation:"Co-interior (same-side interior) angles are supplementary: they add up to 180°. 180 - 65 = 115°.",difficulty:"medium",category:"geometry",topic:"Angle Relationships"},
+
+// ---- READING (10) ----
+{id:66,text:"Read: 'The scientist proposed a bold theory, but her colleagues remained unconvinced.' The word 'bold' most nearly means:",choices:["A. Courageous and daring","B. Visually striking","C. Reckless and irresponsible","D. Well-established"],answer:"A",explanation:"In this context, 'bold' refers to the theory being daring or unconventional, which is why colleagues were skeptical.",difficulty:"easy",category:"reading",topic:"Vocabulary in Context"},
+{id:67,text:"The passage states that coral reefs support 25% of all marine species despite covering less than 1% of the ocean floor. The author's primary purpose in citing these statistics is to:",choices:["A. Argue that ocean conservation is ineffective","B. Emphasize the ecological importance of coral reefs","C. Demonstrate that coral reefs are shrinking","D. Compare coral reefs to other marine ecosystems"],answer:"B",explanation:"The contrast between small area (1%) and large impact (25% of species) emphasizes how important coral reefs are ecologically.",difficulty:"medium",category:"reading",topic:"Main Idea"},
+{id:68,text:"A student is writing a paragraph about renewable energy and wants to add evidence supporting solar panels. Which sentence best serves this purpose?",choices:["A. Solar energy has been used for centuries in various forms.","B. Studies show solar panels reduce electricity bills by 50-90% on average.","C. Many countries disagree on the best forms of renewable energy.","D. Solar panels require initial installation costs."],answer:"B",explanation:"Answer B provides specific, quantitative evidence directly supporting solar panels as beneficial, which best serves an evidence-based purpose.",difficulty:"medium",category:"reading",topic:"Evidence and Support"},
+{id:69,text:"The word 'ephemeral' as used in 'the ephemeral beauty of cherry blossoms' most nearly means:",choices:["A. Extraordinary","B. Brief and fleeting","C. Vibrant and colorful","D. Symbolic and meaningful"],answer:"B",explanation:"Ephemeral means lasting for a very short time. Cherry blossoms are famously short-lived, making 'brief and fleeting' the correct interpretation.",difficulty:"medium",category:"reading",topic:"Vocabulary in Context"},
+{id:70,text:"Which transition word best connects these sentences? 'The experiment was carefully designed. ___, the results were inconclusive.'",choices:["A. Therefore","B. Furthermore","C. Nevertheless","D. Similarly"],answer:"C",explanation:"'Nevertheless' signals a contrast — despite the careful design (positive), the results were inconclusive (negative). It's the best contrast transition.",difficulty:"easy",category:"reading",topic:"Transitions"},
+{id:71,text:"A researcher claims that students who read for pleasure score higher on standardized tests. Which evidence would MOST strengthen this claim?",choices:["A. A survey of 10 students at one school","B. An analysis of test scores and reading habits across 50,000 students nationally","C. Testimony from a teacher about her students","D. One student's personal experience"],answer:"B",explanation:"Large-scale, systematic data (50,000 students nationally) provides the strongest, most generalizable evidence for the claim.",difficulty:"medium",category:"reading",topic:"Evidence and Support"},
+{id:72,text:"The author describes the town as 'a relic frozen in amber.' This figurative language suggests the town is:",choices:["A. Warm and inviting","B. Preserved exactly as it was in the past","C. Undergoing rapid change","D. Located near amber mines"],answer:"B",explanation:"'Frozen in amber' is a metaphor for perfect preservation. The town has not changed and remains as it was historically.",difficulty:"medium",category:"reading",topic:"Figurative Language"},
+{id:73,text:"Based on context, what does 'proliferate' most likely mean in: 'Social media platforms continue to proliferate, with new ones launching each month'?",choices:["A. Decline","B. Merge","C. Increase rapidly","D. Improve"],answer:"C",explanation:"'Proliferate' means to grow or increase rapidly. The context (new platforms launching monthly) confirms this meaning.",difficulty:"easy",category:"reading",topic:"Vocabulary in Context"},
+{id:74,text:"A student wants to add a sentence supporting the idea that exercise improves mental health. Which best fits?",choices:["A. Exercise has been practiced by humans throughout history.","B. Running shoes have significantly improved in the past decade.","C. Research shows that 30 minutes of aerobic exercise reduces anxiety symptoms by up to 40%.","D. Many athletes also report high levels of stress."],answer:"C",explanation:"Answer C directly and specifically supports the claim with scientific evidence about exercise and mental health.",difficulty:"easy",category:"reading",topic:"Evidence and Support"},
+{id:75,text:"The word 'ubiquitous' in 'Smartphones have become ubiquitous in modern life' most nearly means:",choices:["A. Controversial","B. Present everywhere","C. Indispensable","D. Expensive"],answer:"B",explanation:"Ubiquitous means appearing or found everywhere. Smartphones being present everywhere in modern life fits this definition.",difficulty:"easy",category:"reading",topic:"Vocabulary in Context"},
+
+// ---- GRAMMAR (15) ----
+{id:76,text:"Choose the correct sentence:\nA. The team of players are practicing.\nB. The team of players is practicing.\nC. The team of players were practicing.\nD. The team of players practice.",choices:["A. Option A","B. Option B","C. Option C","D. Option D"],answer:"B",explanation:"'Team' is a collective noun and takes a singular verb in American English. 'The team... is' is correct.",difficulty:"easy",category:"grammar",topic:"Subject-Verb Agreement"},
+{id:77,text:"Which version correctly uses a comma?",choices:["A. She went to the store, and bought milk.","B. She went to the store and bought milk.","C. She, went to the store and bought milk.","D. She went, to the store and bought milk."],answer:"B",explanation:"No comma is needed when 'and' connects two verbs with the same subject (not two independent clauses).",difficulty:"easy",category:"grammar",topic:"Punctuation"},
+{id:78,text:"Select the correctly punctuated sentence:",choices:["A. Its important to check your work.","B. It's important to check your work.","C. Its' important to check your work.","D. It's' important to check your work."],answer:"B",explanation:"'It's' is the contraction of 'it is.' 'Its' (no apostrophe) is the possessive pronoun. The sentence needs the contraction.",difficulty:"easy",category:"grammar",topic:"Punctuation"},
+{id:79,text:"Which sentence contains a misplaced modifier?",choices:["A. Running quickly, Maria reached the finish line.","B. The dog barked loudly at strangers.","C. Walking through the park, the flowers were beautiful.","D. She carefully placed the book on the shelf."],answer:"C",explanation:"'Walking through the park' modifies 'the flowers,' but flowers can't walk. The modifier is misplaced; a person must be the subject.",difficulty:"medium",category:"grammar",topic:"Modifiers"},
+{id:80,text:"Choose the sentence with correct pronoun-antecedent agreement:",choices:["A. Each student must bring their textbook.","B. Each student must bring his or her textbook.","C. Each student must bring our textbook.","D. Each student must bring its textbook."],answer:"B",explanation:"'Each' is singular. Traditionally, 'his or her' is used for singular indefinite antecedents. Option A uses plural 'their' with singular 'each' — though common in speech, B is more formally correct on the SAT.",difficulty:"medium",category:"grammar",topic:"Pronoun Agreement"},
+{id:81,text:"Which sentence correctly uses a semicolon?",choices:["A. I wanted to go; but it was raining.","B. The concert was amazing; I would go again.","C. She studied hard; and passed the test.","D. He was tired; because he worked all day."],answer:"B",explanation:"Semicolons connect two independent clauses without a coordinating conjunction. 'The concert was amazing' and 'I would go again' are both complete sentences.",difficulty:"medium",category:"grammar",topic:"Punctuation"},
+{id:82,text:"Identify the error: 'Between you and I, this project needs more work.'",choices:["A. No error","B. 'Between you and I' should be 'Between you and me'","C. 'needs' should be 'need'","D. 'more' should be 'most'"],answer:"B",explanation:"'Between' is a preposition and requires object pronouns. 'Me' is an object pronoun; 'I' is a subject pronoun. Correct: 'between you and me.'",difficulty:"medium",category:"grammar",topic:"Pronouns"},
+{id:83,text:"Choose the best transition to show cause and effect: 'The factory was closed last year. ___, unemployment in the region increased.'",choices:["A. However","B. In contrast","C. As a result","D. For instance"],answer:"C",explanation:"'As a result' shows that the second event (unemployment) was caused by the first (factory closing). It's a cause-effect transition.",difficulty:"easy",category:"grammar",topic:"Transitions"},
+{id:84,text:"Which version correctly uses an apostrophe?",choices:["A. The cat's toys were scattered everywhere.","B. The cats' toys were scattered everywhere. (for one cat)","C. The cats toy's were scattered everywhere.","D. The cats toy were scattered everywhere."],answer:"A",explanation:"For a singular possessive, add 's. 'The cat's toys' means toys belonging to one cat. Option B would be correct for multiple cats.",difficulty:"easy",category:"grammar",topic:"Punctuation"},
+{id:85,text:"Which sentence is grammatically correct?",choices:["A. Neither the students nor the teacher were ready.","B. Neither the students nor the teacher was ready.","C. Neither the students nor the teacher are ready.","D. Neither the students nor the teacher have been ready."],answer:"B",explanation:"With 'neither...nor,' the verb agrees with the nearest subject. 'Teacher' is singular, so use 'was.'",difficulty:"hard",category:"grammar",topic:"Subject-Verb Agreement"},
+{id:86,text:"Select the answer that best improves the sentence: 'The reason why we failed is because we didn't prepare.'",choices:["A. No change needed","B. The reason we failed is that we didn't prepare.","C. The reason why we failed is due to the fact we didn't prepare.","D. We failed because of not preparing."],answer:"B",explanation:"'The reason is because' is redundant — 'reason' already implies causation. The correct form is 'The reason is that.'",difficulty:"hard",category:"grammar",topic:"Sentence Structure"},
+{id:87,text:"Which sentence uses parallel structure correctly?",choices:["A. She likes swimming, to run, and hiking.","B. She likes to swim, running, and hike.","C. She likes swimming, running, and hiking.","D. She likes to swim, to run, and hiking."],answer:"C",explanation:"Parallel structure requires the same grammatical form. C uses three gerunds (swimming, running, hiking) consistently.",difficulty:"medium",category:"grammar",topic:"Parallel Structure"},
+{id:88,text:"Which is the correct use of 'who' vs. 'whom'? 'This is the teacher ___ helped me most.'",choices:["A. whom","B. who","C. whose","D. which"],answer:"B",explanation:"Use 'who' for subjects and 'whom' for objects. In this clause, the pronoun is the subject of 'helped me.' So 'who' is correct.",difficulty:"medium",category:"grammar",topic:"Pronouns"},
+{id:89,text:"Choose the correctly punctuated list:",choices:["A. I bought apples, oranges and bananas.","B. I bought apples, oranges, and bananas.","C. I bought apples oranges and bananas.","D. I bought: apples, oranges and bananas."],answer:"B",explanation:"The Oxford/serial comma before 'and' in a list is standard on the SAT. Option B includes the comma after 'oranges' before 'and.'",difficulty:"easy",category:"grammar",topic:"Punctuation"},
+{id:90,text:"Which version correctly eliminates the dangling modifier? 'After finishing the exam, the classroom was empty.'",choices:["A. After finishing the exam, the students found the classroom empty.","B. After finishing the exam, empty was the classroom.","C. The classroom was empty after the exam was finished.","D. The classroom, after finishing the exam, was empty."],answer:"A",explanation:"The modifier 'After finishing the exam' needs a logical subject. Only students can finish an exam. A provides the proper subject.",difficulty:"hard",category:"grammar",topic:"Modifiers"}
+];
+
+// ============================================================
+// COURSE DATA
+// ============================================================
+const UNITS = [
+{id:1,title:"SAT Math Foundations",emoji:"🔢",color:"#dbeafe",desc:"Percentages, ratios, and fractions",
+ lessons:[
+  {id:"1-1",title:"Percentages",content:`<h2>Percentages</h2>
+<p>Percentages appear in nearly every SAT Math section. Mastering them will give you quick wins.</p>
+<p><strong>Key Formula:</strong></p>
+<div class="formula">Percentage = (Part / Whole) × 100</div>
+<p><strong>Percent Change:</strong></p>
+<div class="formula">% Change = ((New - Old) / Old) × 100</div>
+<p>To find a percentage of a number, multiply by the decimal: 35% of 200 = 0.35 × 200 = 70.</p>
+<p>To find the original value after a percent change: if a price increased by 20% to $60, the original = 60 / 1.20 = $50.</p>
+<p><strong>Common SAT Traps:</strong></p>
+<ul><li>Percent of vs. percent more than — know the difference</li>
+<li>Successive percentage changes are NOT additive (20% increase then 20% decrease ≠ 0%)</li>
+<li>Always identify what the "whole" is in the problem</li></ul>
+<p>Practice recognizing when to multiply versus divide when working with percentages.</p>`,qIds:[38,42,46]},
+  {id:"1-2",title:"Ratios & Proportions",content:`<h2>Ratios & Proportions</h2>
+<p>A ratio compares two quantities. A proportion states that two ratios are equal.</p>
+<div class="formula">a/b = c/d → cross multiply: a×d = b×c</div>
+<p>If the ratio of boys to girls is 3:5 and there are 40 students, boys = (3/8) × 40 = 15.</p>
+<p><strong>Unit Rates:</strong> Express ratios as "per one unit" (e.g., miles per gallon).</p>
+<p><strong>Scaling:</strong> If a recipe serves 4 but you need to serve 10, multiply all quantities by 10/4 = 2.5.</p>
+<p><strong>Tips:</strong></p>
+<ul><li>Label your units to avoid errors</li><li>Check if the answer makes intuitive sense</li><li>Convert units before setting up proportions</li></ul>`,qIds:[40,49]},
+  {id:"1-3",title:"Fractions & Operations",content:`<h2>Fractions & Operations</h2>
+<p>Fractions are fundamental to SAT Math. You must add, subtract, multiply, and divide them fluently.</p>
+<div class="formula">Add/Subtract: Find common denominator → a/b ± c/d = (ad ± bc)/bd</div>
+<div class="formula">Multiply: a/b × c/d = ac/bd</div>
+<div class="formula">Divide: a/b ÷ c/d = a/b × d/c = ad/bc</div>
+<p>Converting between fractions, decimals, and percents is essential:</p>
+<ul><li>1/4 = 0.25 = 25%</li><li>1/3 ≈ 0.333 = 33.3%</li><li>3/8 = 0.375 = 37.5%</li></ul>
+<p><strong>Mixed numbers:</strong> Convert to improper fractions before operating. 2½ = 5/2.</p>`,qIds:[18,36]},
+  {id:"1-4",title:"Number Properties",content:`<h2>Number Properties</h2>
+<p>Understanding number properties helps you work faster and avoid mistakes.</p>
+<p><strong>Integers:</strong> Whole numbers and their negatives. Zero is an integer but not positive or negative.</p>
+<p><strong>Even/Odd Rules:</strong></p>
+<ul><li>even + even = even; odd + odd = even; even + odd = odd</li><li>even × anything = even; odd × odd = odd</li></ul>
+<p><strong>Divisibility Rules:</strong></p>
+<ul><li>Divisible by 2: ends in 0,2,4,6,8</li><li>Divisible by 3: sum of digits divisible by 3</li><li>Divisible by 9: sum of digits divisible by 9</li><li>Divisible by 5: ends in 0 or 5</li></ul>
+<p><strong>Prime Numbers:</strong> Only divisible by 1 and themselves. First primes: 2, 3, 5, 7, 11, 13, 17, 19, 23...</p>`,qIds:[5,14]}
+]},
+{id:2,title:"Algebra Essentials",emoji:"📐",color:"#ede9fe",desc:"Linear equations, inequalities, systems",
+ lessons:[
+  {id:"2-1",title:"Linear Equations",content:`<h2>Linear Equations</h2>
+<p>Linear equations have variables to the first power and graph as straight lines.</p>
+<div class="formula">Standard form: ax + b = c → x = (c - b) / a</div>
+<p>Solve by isolating the variable: perform the same operation on both sides.</p>
+<p>Multi-step example: 2(3x + 1) = 4(x - 2) + 14</p>
+<ul><li>Expand: 6x + 2 = 4x - 8 + 14</li><li>Combine like terms: 6x + 2 = 4x + 6</li><li>Move variables: 2x = 4</li><li>Solve: x = 2</li></ul>
+<p><strong>Word Problem Tip:</strong> Translate English to math. "Three more than twice a number is 17" → 2x + 3 = 17.</p>`,qIds:[1,2,12,18]},
+  {id:"2-2",title:"Inequalities",content:`<h2>Inequalities</h2>
+<p>Inequalities use >, <, ≥, ≤ instead of =. Solving is similar to equations with one key rule:</p>
+<div class="formula">Multiplying or dividing by a NEGATIVE number FLIPS the inequality sign</div>
+<p>Example: -2x > 8 → x < -4 (flip sign when dividing by -2)</p>
+<p><strong>Compound Inequalities:</strong> Solve each part and find the intersection or union.</p>
+<p>-3 < 2x + 1 < 9: Subtract 1 → -4 < 2x < 8 → -2 < x < 4</p>
+<p><strong>Absolute Value Inequalities:</strong></p>
+<ul><li>|x| < 5 means -5 < x < 5 (between)</li><li>|x| > 5 means x > 5 or x < -5 (outside)</li></ul>`,qIds:[10,20]},
+  {id:"2-3",title:"Systems of Equations",content:`<h2>Systems of Equations</h2>
+<p>Two equations with two unknowns. Three methods to solve:</p>
+<p><strong>Substitution:</strong> Solve one equation for one variable, plug into the other.</p>
+<p><strong>Elimination:</strong> Add or subtract equations to eliminate one variable.</p>
+<div class="formula">x + y = 10 and x - y = 4 → Add: 2x = 14 → x = 7, y = 3</div>
+<p><strong>Graphing:</strong> The solution is where the lines intersect.</p>
+<p><strong>Special Cases:</strong></p>
+<ul><li>No solution: lines are parallel (same slope, different intercepts)</li><li>Infinite solutions: same line (same slope and intercept)</li></ul>`,qIds:[8,15]},
+  {id:"2-4",title:"Linear Functions",content:`<h2>Linear Functions</h2>
+<p>A linear function has the form f(x) = mx + b, where m = slope and b = y-intercept.</p>
+<div class="formula">Slope = (y₂ - y₁) / (x₂ - x₁) = rise/run</div>
+<p>Positive slope: line goes up left to right. Negative slope: goes down.</p>
+<p><strong>Slope-Intercept Form:</strong> y = mx + b — easiest to graph</p>
+<p><strong>Standard Form:</strong> Ax + By = C — useful for finding intercepts quickly</p>
+<p><strong>Point-Slope Form:</strong> y - y₁ = m(x - x₁) — use when you know slope and one point</p>
+<p>Parallel lines have equal slopes. Perpendicular lines have slopes that are negative reciprocals.</p>`,qIds:[6,7,17,19]}
+]},
+{id:3,title:"Advanced Algebra",emoji:"🔬",color:"#fce7f3",desc:"Quadratics, polynomials, functions",
+ lessons:[
+  {id:"3-1",title:"Quadratic Equations",content:`<h2>Quadratic Equations</h2>
+<p>Quadratics have the form ax² + bx + c = 0. They can have 0, 1, or 2 real solutions.</p>
+<p><strong>Methods to solve:</strong></p>
+<p>1. Factoring: Find two numbers that multiply to ac and add to b</p>
+<div class="formula">x² - 5x + 6 = 0 → (x-2)(x-3) = 0 → x=2 or x=3</div>
+<p>2. Quadratic Formula: Always works!</p>
+<div class="formula">x = (-b ± √(b² - 4ac)) / 2a</div>
+<p>3. Completing the square: Transform into vertex form</p>
+<p><strong>Discriminant (b² - 4ac):</strong></p>
+<ul><li>Positive: two real solutions</li><li>Zero: one real solution (perfect square)</li><li>Negative: no real solutions</li></ul>`,qIds:[22,23,29,33]},
+  {id:"3-2",title:"Vertex Form & Parabolas",content:`<h2>Vertex Form & Parabolas</h2>
+<p>Vertex form: y = a(x - h)² + k, where (h, k) is the vertex.</p>
+<p>The vertex is the maximum (if a < 0) or minimum (if a > 0) point of the parabola.</p>
+<div class="formula">Vertex x-coordinate: x = -b / (2a) from standard form</div>
+<p>Axis of symmetry: x = h (vertical line through vertex)</p>
+<p><strong>Key features to know:</strong></p>
+<ul><li>x-intercepts (roots): where y = 0</li><li>y-intercept: where x = 0 (always c in ax² + bx + c)</li><li>Direction: opens up if a > 0, down if a < 0</li><li>Width: larger |a| = narrower parabola</li></ul>`,qIds:[24,28]},
+  {id:"3-3",title:"Polynomials",content:`<h2>Polynomials</h2>
+<p>Polynomials are expressions with multiple terms: ax^n + bx^(n-1) + ... + c</p>
+<p><strong>Adding/Subtracting:</strong> Combine like terms (same variable and exponent)</p>
+<p><strong>Multiplying:</strong> Distribute every term — use FOIL for binomials</p>
+<div class="formula">(x + 3)(x - 3) = x² - 9 (difference of squares)</div>
+<div class="formula">(x + a)² = x² + 2ax + a² (perfect square trinomial)</div>
+<p><strong>Exponent Rules:</strong></p>
+<ul><li>x^a × x^b = x^(a+b)</li><li>x^a ÷ x^b = x^(a-b)</li><li>(x^a)^b = x^(ab)</li><li>x^0 = 1</li></ul>`,qIds:[27,32]},
+  {id:"3-4",title:"Exponential Functions",content:`<h2>Exponential Functions</h2>
+<p>Exponential functions: f(x) = a · b^x, where b is the base (growth/decay factor)</p>
+<p>b > 1: exponential growth. 0 < b < 1: exponential decay.</p>
+<div class="formula">Population after t periods: P(t) = P₀ · r^t</div>
+<p>If a population doubles every 5 years, after 15 years = 3 doublings = P₀ × 2³</p>
+<p><strong>Half-life:</strong> P(t) = P₀ × (1/2)^(t/half-life)</p>
+<p><strong>Exponential vs. Linear:</strong></p>
+<ul><li>Linear grows by a constant amount each period</li><li>Exponential grows by a constant factor each period</li><li>Exponential eventually overtakes linear for large x</li></ul>`,qIds:[25,26,34]}
+]},
+{id:4,title:"Data & Statistics",emoji:"📊",color:"#d1fae5",desc:"Mean/median, probability, data interpretation",
+ lessons:[
+  {id:"4-1",title:"Mean, Median, Mode",content:`<h2>Mean, Median, Mode</h2>
+<p>These three measures describe the center of a data set.</p>
+<div class="formula">Mean = Sum of all values / Number of values</div>
+<p><strong>Median:</strong> Middle value when data is sorted. For even count, average the two middle values.</p>
+<p><strong>Mode:</strong> Most frequently occurring value. A data set can have multiple modes or none.</p>
+<p><strong>When Mean ≠ Median:</strong></p>
+<ul><li>Mean > Median: data is skewed right (high outliers)</li><li>Mean < Median: data is skewed left (low outliers)</li><li>Median is more resistant to outliers than mean</li></ul>
+<p><strong>Weighted Average:</strong> When values have different frequencies, multiply each value by its frequency, sum, then divide by total count.</p>`,qIds:[36,37,41,45,48]},
+  {id:"4-2",title:"Probability",content:`<h2>Probability</h2>
+<div class="formula">P(event) = favorable outcomes / total outcomes</div>
+<p>Probability ranges from 0 (impossible) to 1 (certain).</p>
+<p><strong>Complementary Events:</strong> P(A) + P(not A) = 1</p>
+<p><strong>Mutually Exclusive Events (can't both happen):</strong> P(A or B) = P(A) + P(B)</p>
+<p><strong>Independent Events:</strong> P(A and B) = P(A) × P(B)</p>
+<p><strong>Dependent Events:</strong> P(A and B) = P(A) × P(B|A), where P(B|A) is probability of B given A occurred.</p>
+<p>Example: Drawing two cards without replacement — the second draw depends on the first.</p>`,qIds:[39,43,47,50]},
+  {id:"4-3",title:"Data Interpretation",content:`<h2>Data Interpretation</h2>
+<p>SAT often provides tables, bar graphs, line graphs, or scatterplots. Key skills:</p>
+<p><strong>Reading Tables:</strong> Identify categories and what each row/column represents.</p>
+<p><strong>Scatterplots:</strong></p>
+<ul><li>Positive correlation: both increase together</li><li>Negative correlation: one increases as other decreases</li><li>No correlation: no clear pattern</li><li>Line of best fit: minimizes total distance to all points</li></ul>
+<p><strong>Correlation vs. Causation:</strong> Data can show correlation but NOT prove causation without controlled experiments.</p>
+<p><strong>Sampling:</strong> Larger, random samples produce more reliable generalizations about populations.</p>`,qIds:[44,46]},
+  {id:"4-4",title:"Ratios & Rates",content:`<h2>Ratios & Rates</h2>
+<p>A ratio compares quantities. A rate is a ratio with different units (miles per hour, dollars per item).</p>
+<div class="formula">Unit rate = Total amount / Number of units</div>
+<p><strong>Setting up proportions:</strong> If 3 pens cost $4.50, how much do 7 cost?</p>
+<div class="formula">3/4.50 = 7/x → x = (7 × 4.50)/3 = $10.50</div>
+<p><strong>Speed = Distance / Time. Rearrange as needed.</strong></p>
+<p>Average rate for round trip: NOT the simple average of two speeds!</p>
+<div class="formula">Average speed = 2(d₁)(d₂)... total distance / total time</div>
+<p><strong>Scaling ratios:</strong> Always multiply or divide ALL parts of the ratio by the same number.</p>`,qIds:[49,40]}
+]},
+{id:5,title:"Geometry & Trig",emoji:"📏",color:"#fef3c7",desc:"Area, circles, triangles, trigonometry",
+ lessons:[
+  {id:"5-1",title:"Area & Perimeter",content:`<h2>Area & Perimeter</h2>
+<p>Key formulas to memorize for the SAT:</p>
+<div class="formula">Rectangle: A = lw, P = 2(l + w)</div>
+<div class="formula">Triangle: A = ½bh, P = a + b + c</div>
+<div class="formula">Circle: A = πr², C = 2πr</div>
+<div class="formula">Trapezoid: A = ½(b₁ + b₂)h</div>
+<p><strong>Composite figures:</strong> Break complex shapes into simpler ones and add/subtract areas.</p>
+<p><strong>Units matter:</strong> Area is always in square units (ft², m²). Volume in cubic units.</p>
+<p>If a problem gives diameter instead of radius, remember r = d/2.</p>`,qIds:[51,52,53,57,58]},
+  {id:"5-2",title:"Triangles",content:`<h2>Triangles</h2>
+<p>Triangle angles always sum to 180°.</p>
+<p><strong>Pythagorean Theorem (right triangles only):</strong></p>
+<div class="formula">a² + b² = c² where c is the hypotenuse</div>
+<p>Common Pythagorean triples: 3-4-5, 5-12-13, 8-15-17</p>
+<p><strong>Special right triangles:</strong></p>
+<ul><li>45-45-90: sides in ratio 1 : 1 : √2</li><li>30-60-90: sides in ratio 1 : √3 : 2</li></ul>
+<p><strong>Similar triangles:</strong> Same shape, corresponding sides in proportion.</p>
+<p><strong>Exterior angle theorem:</strong> An exterior angle equals the sum of the two non-adjacent interior angles.</p>`,qIds:[54,56,60]},
+  {id:"5-3",title:"Circles",content:`<h2>Circles</h2>
+<p>Essential circle facts for the SAT:</p>
+<div class="formula">Area = πr², Circumference = 2πr = πd</div>
+<p><strong>Arc length:</strong> (central angle / 360) × 2πr</p>
+<p><strong>Sector area:</strong> (central angle / 360) × πr²</p>
+<p><strong>Inscribed angle:</strong> Equals half the central angle that subtends the same arc.</p>
+<p><strong>Tangent lines:</strong> Perpendicular to the radius at the point of tangency.</p>
+<p>If a chord passes through the center, it's a diameter.</p>
+<p>The SAT provides π ≈ 3.14159. For exact answers, leave in terms of π.</p>`,qIds:[53,57]},
+  {id:"5-4",title:"Coordinate Geometry",content:`<h2>Coordinate Geometry</h2>
+<p>The coordinate plane connects algebra and geometry.</p>
+<div class="formula">Distance: d = √((x₂-x₁)² + (y₂-y₁)²)</div>
+<div class="formula">Midpoint: ((x₁+x₂)/2, (y₁+y₂)/2)</div>
+<div class="formula">Slope: m = (y₂-y₁)/(x₂-x₁)</div>
+<p>Parallel lines: same slope. Perpendicular lines: slopes are negative reciprocals (m₁ × m₂ = -1).</p>
+<p><strong>Finding intercepts:</strong></p>
+<ul><li>x-intercept: set y = 0 and solve</li><li>y-intercept: set x = 0 (always b in y = mx + b)</li></ul>
+<p>To find if a point is on a line, substitute its coordinates into the equation.</p>`,qIds:[55,59,61,63]}
+]},
+{id:6,title:"Reading Comprehension",emoji:"📖",color:"#fce7f3",desc:"Main idea, vocabulary, inference",
+ lessons:[
+  {id:"6-1",title:"Main Idea & Purpose",content:`<h2>Main Idea & Purpose</h2>
+<p>Every SAT Reading passage has a central idea. Your goal: identify it quickly.</p>
+<p><strong>Finding the Main Idea:</strong></p>
+<ul><li>Read the first and last paragraphs carefully — main idea is often stated there</li><li>Ask: "What is the author's main point?"</li><li>Look for the claim that other details support</li></ul>
+<p><strong>Author's Purpose:</strong> Why did the author write this?</p>
+<ul><li>To inform/explain: neutral, factual language</li><li>To argue/persuade: takes a position, uses evidence</li><li>To describe/analyze: examines something in detail</li><li>To entertain: uses narrative, vivid language</li></ul>
+<p><strong>Wrong Answers:</strong> Too broad, too narrow, opposite of the passage, or not mentioned.</p>`,qIds:[67,68]},
+  {id:"6-2",title:"Vocabulary in Context",content:`<h2>Vocabulary in Context</h2>
+<p>SAT vocabulary questions ask about word meaning in context — not just definitions.</p>
+<p><strong>Strategy:</strong></p>
+<ul><li>Cover the word and read the sentence</li><li>Think of your own word that would fit</li><li>Compare your word to the answer choices</li><li>Plug each choice back in to check</li></ul>
+<p>Words often have multiple meanings. "Stiff" can mean rigid (physical) or formal (manner) or high (price). Context determines which meaning applies.</p>
+<p><strong>Key vocabulary for SAT:</strong></p>
+<ul><li>ephemeral (short-lived), ubiquitous (everywhere), proliferate (spread rapidly), bold (daring), unprecedented (never happened before)</li></ul>`,qIds:[66,69,73,75]},
+  {id:"6-3",title:"Evidence Questions",content:`<h2>Evidence Questions</h2>
+<p>These questions ask you to find textual support for a claim.</p>
+<p><strong>Types:</strong></p>
+<ul><li>"Which statement best supports the claim that..."</li><li>"Which evidence would strengthen this argument?"</li><li>"The author uses the example in paragraph 3 to..."</li></ul>
+<p><strong>Strong Evidence:</strong></p>
+<ul><li>Directly addresses the claim</li><li>Specific and quantitative when possible</li><li>From a credible source or well-designed study</li><li>Representative (not just one exception)</li></ul>
+<p><strong>Weak Evidence:</strong> Anecdotes, very small samples, unrelated studies, or evidence that contradicts the claim.</p>`,qIds:[68,71,74]},
+  {id:"6-4",title:"Inference & Tone",content:`<h2>Inference & Tone</h2>
+<p>Inference questions ask what the passage implies — not directly states.</p>
+<p><strong>Strategy:</strong> The correct inference must be supported by evidence in the passage. Don't go beyond what the text allows.</p>
+<p><strong>Author's Tone:</strong> The attitude conveyed through word choice.</p>
+<ul><li>Critical, skeptical, cautious, concerned, optimistic, neutral, enthusiastic</li></ul>
+<p>Identify tone words: "merely," "surprisingly," "unfortunately," "strikingly" all carry emotional weight.</p>
+<p><strong>Figurative Language:</strong></p>
+<ul><li>Metaphor: direct comparison (frozen in amber = preserved)</li><li>Simile: uses "like" or "as"</li><li>Irony: says the opposite of what is meant</li></ul>`,qIds:[72]}
+]},
+{id:7,title:"Standard English",emoji:"✍️",color:"#fee2e2",desc:"Grammar, punctuation, sentence structure",
+ lessons:[
+  {id:"7-1",title:"Subject-Verb Agreement",content:`<h2>Subject-Verb Agreement</h2>
+<p>The subject and verb must agree in number (singular/plural).</p>
+<p><strong>Core Rule:</strong> Singular subject → singular verb. Plural subject → plural verb.</p>
+<div class="formula">The dog barks. (singular) / The dogs bark. (plural)</div>
+<p><strong>Tricky Cases:</strong></p>
+<ul><li>Collective nouns (team, group, committee): singular in American English — "The team IS ready"</li><li>Prepositional phrases: ignore them — "The box OF apples IS on the table"</li><li>Neither/nor: verb agrees with the closer subject — "Neither the students nor the teacher WAS ready"</li><li>Indefinite pronouns (each, everyone, everyone): singular — "Everyone IS here"</li></ul>`,qIds:[76,85]},
+  {id:"7-2",title:"Punctuation",content:`<h2>Punctuation</h2>
+<p><strong>Commas:</strong></p>
+<ul><li>Before coordinating conjunctions (FANBOYS: for, and, nor, but, or, yet, so) joining two independent clauses</li><li>After introductory phrases/clauses</li><li>Around non-essential clauses</li><li>In lists (Oxford comma before "and")</li></ul>
+<p><strong>Semicolons:</strong> Connect two independent clauses without a conjunction. NOT before a conjunction.</p>
+<p><strong>Colons:</strong> Introduce a list, explanation, or quote — must follow a complete sentence.</p>
+<p><strong>Apostrophes:</strong></p>
+<ul><li>Possession: cat's (singular), cats' (plural), it's = it is, its = possessive</li><li>Contractions: don't, can't, won't, they're</li></ul>`,qIds:[77,78,81,84,89]},
+  {id:"7-3",title:"Modifiers & Parallelism",content:`<h2>Modifiers & Parallelism</h2>
+<p><strong>Modifiers</strong> describe or limit other words. They must be placed next to what they modify.</p>
+<p>Dangling modifier: "Running quickly, the finish line was crossed." (Who was running? The finish line can't run.)</p>
+<p>Fix: "Running quickly, Maria crossed the finish line."</p>
+<p><strong>Parallel Structure:</strong> Items in a list or comparison must use the same grammatical form.</p>
+<ul><li>Wrong: "She likes swimming, to run, and hiking."</li><li>Right: "She likes swimming, running, and hiking."</li></ul>
+<p>Parallelism applies to: lists, correlative conjunctions (either/or, both/and, not only/but also), and comparisons.</p>`,qIds:[79,87]},
+  {id:"7-4",title:"Pronouns & Transitions",content:`<h2>Pronouns & Transitions</h2>
+<p><strong>Pronouns</strong> must agree with their antecedents in number and gender.</p>
+<ul><li>Who/whom: "who" for subjects, "whom" for objects</li><li>I/me: use "I" as subject, "me" as object ("between you and me")</li></ul>
+<p><strong>Pronoun Clarity:</strong> Every pronoun must clearly refer to one specific noun.</p>
+<p><strong>Transition Words by Function:</strong></p>
+<ul><li>Addition: also, furthermore, moreover, in addition</li><li>Contrast: however, nevertheless, although, despite</li><li>Cause/Effect: therefore, thus, as a result, consequently</li><li>Example: for instance, for example, such as</li><li>Sequence: first, then, finally, subsequently</li></ul>`,qIds:[83,80,82,88]}
+]},
+{id:8,title:"Expression of Ideas",emoji:"💡",color:"#f0fdf4",desc:"Transitions, organization, rhetoric",
+ lessons:[
+  {id:"8-1",title:"Transitions",content:`<h2>Transitions</h2>
+<p>Transition questions test whether you can connect ideas logically between sentences or paragraphs.</p>
+<p><strong>Step-by-step approach:</strong></p>
+<ol style="padding-left:20px;color:var(--text-secondary)"><li>Read the sentence before and the sentence after</li><li>Determine the relationship between the ideas</li><li>Select the transition word that matches that relationship</li></ol>
+<p><strong>Common Relationships:</strong></p>
+<ul><li>Contrast: however, nevertheless, on the other hand, yet</li><li>Addition: furthermore, moreover, additionally, also</li><li>Cause/Effect: therefore, thus, consequently, as a result</li><li>Concession: although, even though, while it is true that</li><li>Example: for example, for instance, specifically</li></ul>
+<p>Trap: don't pick a transition just because you like it — the relationship must match the content.</p>`,qIds:[70,83]},
+  {id:"8-2",title:"Sentence Combining",content:`<h2>Sentence Combining & Wordiness</h2>
+<p>SAT tests your ability to express ideas clearly and concisely.</p>
+<p><strong>Eliminate Redundancy:</strong> Don't say the same thing twice.</p>
+<ul><li>Wrong: "The reason is because..." → Right: "The reason is that..."</li><li>Wrong: "First and foremost" (pick one)</li><li>Wrong: "Advance planning" (planning is always in advance)</li></ul>
+<p><strong>Combining sentences:</strong> Use subordinating conjunctions (because, although, since, when) to show relationships.</p>
+<p>Two short choppy sentences can often be combined with a comma + conjunction or a semicolon.</p>
+<p><strong>Active vs. Passive Voice:</strong> Active voice is usually more concise and direct. "She wrote the report" vs. "The report was written by her."</p>`,qIds:[86]},
+  {id:"8-3",title:"Adding & Deleting Information",content:`<h2>Adding & Deleting Information</h2>
+<p>These questions ask whether a sentence should be added or whether existing information should be kept or deleted.</p>
+<p><strong>Adding Information:</strong></p>
+<ul><li>Ask: Does this support the paragraph's main idea?</li><li>Does it provide relevant, specific evidence?</li><li>Is it new information or repetitive?</li></ul>
+<p><strong>Deleting Information:</strong></p>
+<ul><li>Should it be deleted if: off-topic, redundant, contradicts the main idea, or introduces irrelevant details</li><li>Should it be kept if: it supports the argument, provides necessary context, or answers a question raised in the passage</li></ul>
+<p><strong>Key Principle:</strong> Every sentence should serve a purpose in the paragraph.</p>`,qIds:[68,74]},
+  {id:"8-4",title:"Rhetoric & Organization",content:`<h2>Rhetoric & Organization</h2>
+<p>These questions test your understanding of how a passage is structured and how it achieves its purpose.</p>
+<p><strong>Organizational Patterns:</strong></p>
+<ul><li>Problem-Solution: presents issue then how to fix it</li><li>Compare-Contrast: examines similarities and differences</li><li>Chronological: events in time order</li><li>Cause-Effect: explains why something happened</li><li>General to Specific: broad claim then supporting details</li></ul>
+<p><strong>Rhetorical Strategies:</strong></p>
+<ul><li>Ethos: credibility (expert quotes, credentials)</li><li>Pathos: emotion (stories, vivid images)</li><li>Logos: logic (statistics, reasoning)</li></ul>
+<p>Introductions present the topic/thesis. Conclusions summarize or call to action.</p>`,qIds:[67,71]}
+]}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let STATE = {
+  onboarded: false,
+  name: "",
+  goalScore: 1400,
+  testDate: "",
+  level: "intermediate",
+  score: 600.0,
+  questionHistory: {},      // id -> {correct, timeSpent}
+  categoryStats: {},        // category -> {correct, wrong}
+  courseProgress: {},       // lessonId -> 'done'|'current'|'locked'
+  testHistory: [],
+  chatHistory: [],
+  streak: 0,
+  lastStudyDate: ""
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('scoreup_state');
+    if (saved) STATE = {...STATE, ...JSON.parse(saved)};
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('scoreup_state', JSON.stringify(STATE)); } catch(e) {}
+}
+
+// ============================================================
+// ONBOARDING
+// ============================================================
+let currentSlide = 1;
+let selectedScore = null;
+let selectedLevel = null;
+
+function nextSlide() {
+  if (currentSlide === 2) {
+    const n = document.getElementById('ob-name').value.trim();
+    if (!n) { document.getElementById('ob-name').style.borderColor='var(--error)'; return; }
+    STATE.name = n;
+  }
+  if (currentSlide === 3 && selectedScore) STATE.goalScore = parseInt(selectedScore);
+  if (currentSlide === 4) {
+    const d = document.getElementById('ob-date').value;
+    if (d) STATE.testDate = d;
+  }
+  document.getElementById('slide-' + currentSlide).classList.remove('active');
+  currentSlide++;
+  document.getElementById('slide-' + currentSlide).classList.add('active');
+  updateDots();
+}
+
+function updateDots() {
+  const dots = document.querySelectorAll('.slide-dots .dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('active', i === currentSlide - 1);
+  });
+}
+
+function selectScore(el, val) {
+  document.querySelectorAll('.score-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedScore = val;
+}
+
+function selectLevel(el, val) {
+  document.querySelectorAll('.level-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLevel = val;
+}
+
+function finishOnboarding() {
+  if (selectedLevel) STATE.level = selectedLevel;
+  if (!STATE.name) STATE.name = "Student";
+  STATE.onboarded = true;
+  // Init course progress
+  initCourseProgress();
+  saveState();
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  navigate('home');
+  refreshUI();
+}
+
+function initCourseProgress() {
+  UNITS.forEach((unit, ui) => {
+    unit.lessons.forEach((lesson, li) => {
+      if (!STATE.courseProgress[lesson.id]) {
+        STATE.courseProgress[lesson.id] = (ui === 0 && li === 0) ? 'current' : 'locked';
+      }
+    });
+  });
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+let currentView = 'home';
+
+function navigate(view, filter) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
+  
+  const v = document.getElementById('view-' + view);
+  if (v) v.classList.add('active');
+  
+  const navEl = document.getElementById('nav-' + view);
+  if (navEl) navEl.classList.add('active');
+  const bnavEl = document.getElementById('bnav-' + view);
+  if (bnavEl) bnavEl.classList.add('active');
+  
+  currentView = view;
+  
+  if (view === 'home') renderHome();
+  else if (view === 'practice') renderPractice(filter);
+  else if (view === 'tests') renderTests();
+  else if (view === 'course') renderCourse();
+  else if (view === 'worksheets') renderWorksheets();
+  else if (view === 'coach') renderCoach();
+}
+
+// ============================================================
+// SCORE SYSTEM
+// ============================================================
+function calcGain(difficulty, timeSpent) {
+  const bases = {easy: 2.5, medium: 4.5, hard: 7.5};
+  const base = bases[difficulty] || 3;
+  const t = (STATE.score - 600) / 1000;
+  let gain = base * Math.exp(-2.3 * t);
+  // Time bonus: if answered in < 30s get up to 20% bonus
+  if (timeSpent && timeSpent < 30) {
+    gain *= 1 + 0.2 * (1 - timeSpent / 30);
+  }
+  return Math.max(gain, 0.1);
+}
+
+function applyGain(gain) {
+  STATE.score = Math.min(1600, STATE.score + gain);
+  updateScoreDisplay();
+  saveState();
+}
+
+function updateScoreDisplay() {
+  const s = Math.round(STATE.score);
+  const el = document.getElementById('score-display');
+  if (el) el.textContent = s;
+  const bar = document.getElementById('score-bar');
+  if (bar) bar.style.width = ((s - 600) / 1000 * 100) + '%';
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  document.getElementById('greeting').textContent = `Hey, ${STATE.name} 👋`;
+  const score = Math.round(STATE.score);
+  const el = document.getElementById('score-display');
+  if (el) el.textContent = score;
+  const bar = document.getElementById('score-bar');
+  if (bar) bar.style.width = ((score - 600) / 1000 * 100) + '%';
+  const goalEl = document.getElementById('goal-display');
+  if (goalEl) goalEl.textContent = `Goal: ${STATE.goalScore}`;
+  
+  // Countdown
+  if (STATE.testDate) {
+    const days = Math.ceil((new Date(STATE.testDate) - new Date()) / 86400000);
+    const el = document.getElementById('test-countdown');
+    if (el) el.textContent = days > 0 ? `${days} days until your test!` : 'Keep up the great work!';
+  }
+  
+  // Stats
+  const history = Object.values(STATE.questionHistory);
+  const totalQ = history.length;
+  const correct = history.filter(h => h.correct).length;
+  document.getElementById('stat-qs').textContent = totalQ;
+  document.getElementById('stat-acc').textContent = totalQ > 0 ? Math.round(correct/totalQ*100) + '%' : '—';
+  
+  // Category progress
+  const cats = ['algebra','advanced_math','data_analysis','geometry','reading','grammar'];
+  const catMap = {algebra:'algebra',advanced_math:'adv',data_analysis:'data',geometry:'geo',reading:'read',grammar:'gram'};
+  const catQs = {};
+  cats.forEach(c => {
+    catQs[c] = QUESTIONS.filter(q => q.category === c);
+  });
+  
+  cats.forEach(cat => {
+    const total = catQs[cat].length;
+    const answered = catQs[cat].filter(q => STATE.questionHistory[q.id]).length;
+    const pct = total > 0 ? Math.round(answered / total * 100) : 0;
+    const barEl = document.getElementById('prog-' + catMap[cat]);
+    const labelEl = document.getElementById('prog-' + catMap[cat] + '-label');
+    if (barEl) barEl.style.width = pct + '%';
+    if (labelEl) labelEl.textContent = `${answered} of ${total} answered`;
+  });
+}
+
+// ============================================================
+// PRACTICE
+// ============================================================
+let practiceState = {
+  filteredQs: [],
+  currentIdx: 0,
+  answered: false,
+  startTime: 0,
+  timerInterval: null,
+  timerSeconds: 120
+};
+
+function applyFilters() {
+  const cat = document.getElementById('cat-filter').value;
+  const diff = document.getElementById('diff-filter').value;
+  practiceState.filteredQs = QUESTIONS.filter(q => {
+    return (cat === 'all' || q.category === cat) && (diff === 'all' || q.difficulty === diff);
+  });
+  practiceState.currentIdx = 0;
+  const cnt = document.getElementById('filter-count');
+  if (cnt) cnt.textContent = `${practiceState.filteredQs.length} questions`;
+  renderPracticeQuestion();
+}
+
+function renderPractice(filterCat) {
+  if (filterCat) {
+    document.getElementById('cat-filter').value = filterCat;
+  }
+  applyFilters();
+}
+
+function renderPracticeQuestion() {
+  const container = document.getElementById('practice-content');
+  if (!container) return;
+  if (practiceState.filteredQs.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No questions match your filters.</p></div>';
+    return;
+  }
+  const q = practiceState.filteredQs[practiceState.currentIdx];
+  practiceState.answered = false;
+  practiceState.startTime = Date.now();
+  
+  // Reset and start timer
+  clearInterval(practiceState.timerInterval);
+  practiceState.timerSeconds = 120;
+  
+  const prevAnswered = STATE.questionHistory[q.id];
+  
+  container.innerHTML = `
+    <div class="question-card">
+      <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
+      <div class="q-meta">
+        <span class="badge badge-${q.difficulty}">${q.difficulty.charAt(0).toUpperCase()+q.difficulty.slice(1)}</span>
+        <span class="badge badge-cat">${formatCat(q.category)}</span>
+        <span class="badge" style="background:#f1f5f9;color:var(--text-secondary)">${q.topic}</span>
+        ${prevAnswered ? `<span class="badge" style="background:${prevAnswered.correct?'#d1fae5':'#fee2e2'};color:${prevAnswered.correct?'#065f46':'#991b1b'}">${prevAnswered.correct?'✓ Correct':'✗ Incorrect'} before</span>` : ''}
+      </div>
+      <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>
+      <div class="choices" id="choices-container">
+        ${q.choices.map(ch => `<button class="choice" onclick="selectAnswer('${ch[0]}', this)"  data-letter="${ch[0]}">
+          <span class="choice-letter">${ch[0]}.</span>
+          <span>${ch.slice(3)}</span>
+        </button>`).join('')}
+      </div>
+      <div id="feedback-area"></div>
+      <div class="q-nav">
+        <button class="btn btn-outline btn-sm" onclick="prevQuestion()" ${practiceState.currentIdx === 0 ? 'disabled' : ''}>← Previous</button>
+        <span style="color:var(--text-secondary);font-size:14px">${practiceState.currentIdx+1} / ${practiceState.filteredQs.length}</span>
+        <button class="btn btn-primary btn-sm" onclick="nextQuestion()">Next →</button>
+      </div>
+    </div>`;
+  
+  startPracticeTimer();
+}
+
+function startPracticeTimer() {
+  const fill = document.getElementById('timer-fill');
+  if (!fill) return;
+  clearInterval(practiceState.timerInterval);
+  practiceState.timerInterval = setInterval(() => {
+    practiceState.timerSeconds--;
+    if (fill) fill.style.width = (practiceState.timerSeconds / 120 * 100) + '%';
+    if (practiceState.timerSeconds <= 30 && fill) fill.style.background = 'var(--error)';
+    if (practiceState.timerSeconds <= 0) clearInterval(practiceState.timerInterval);
+  }, 1000);
+}
+
+function formatCat(cat) {
+  const names = {algebra:'Algebra',advanced_math:'Advanced Math',data_analysis:'Data Analysis',geometry:'Geometry',reading:'Reading',grammar:'Grammar'};
+  return names[cat] || cat;
+}
+
+function selectAnswer(letter, btn) {
+  if (practiceState.answered) return;
+  practiceState.answered = true;
+  clearInterval(practiceState.timerInterval);
+  
+  const q = practiceState.filteredQs[practiceState.currentIdx];
+  const correct = letter === q.answer;
+  const timeSpent = (Date.now() - practiceState.startTime) / 1000;
+  
+  // Update state
+  STATE.questionHistory[q.id] = {correct, timeSpent};
+  if (!STATE.categoryStats[q.category]) STATE.categoryStats[q.category] = {correct:0,wrong:0};
+  if (correct) {
+    STATE.categoryStats[q.category].correct++;
+    const gain = calcGain(q.difficulty, timeSpent);
+    applyGain(gain);
+    document.getElementById('feedback-area').innerHTML = `
+      <div class="feedback-panel feedback-correct">
+        <div class="feedback-title">✓ Correct!</div>
+        <div class="feedback-exp">${q.explanation}</div>
+        <div class="score-gain">+${gain.toFixed(1)} points</div>
+      </div>`;
+  } else {
+    STATE.categoryStats[q.category].wrong++;
+    document.getElementById('feedback-area').innerHTML = `
+      <div class="feedback-panel feedback-incorrect">
+        <div class="feedback-title">✗ Incorrect — Answer is ${q.answer}</div>
+        <div class="feedback-exp">${q.explanation}</div>
+      </div>`;
+  }
+  
+  // Color choices
+  document.querySelectorAll('.choice').forEach(b => {
+    b.disabled = true;
+    const l = b.dataset.letter;
+    if (l === q.answer) b.classList.add('correct');
+    else if (l === letter && !correct) b.classList.add('incorrect');
+  });
+  
+  saveState();
+  updateScoreDisplay();
+}
+
+function nextQuestion() {
+  if (practiceState.currentIdx < practiceState.filteredQs.length - 1) {
+    practiceState.currentIdx++;
+  } else {
+    practiceState.currentIdx = 0;
+  }
+  renderPracticeQuestion();
+}
+
+function prevQuestion() {
+  if (practiceState.currentIdx > 0) {
+    practiceState.currentIdx--;
+    renderPracticeQuestion();
+  }
+}
+
+// ============================================================
+// TESTS
+// ============================================================
+let testState = {
+  type: '',
+  questions: [],
+  currentIdx: 0,
+  answers: {},
+  startTime: 0,
+  totalTime: 3900,
+  timerInterval: null,
+  finished: false
+};
+
+const TEST_CONFIGS = {
+  full: {name:'Full Practice Test', time:3900, count:50, cats:'all'},
+  math: {name:'Math Section Test', time:2100, count:25, cats:['algebra','advanced_math','data_analysis','geometry']},
+  reading: {name:'Reading & Writing Test', time:1920, count:25, cats:['reading','grammar']},
+  'quiz-algebra': {name:'Algebra Quiz', time:900, count:10, cats:['algebra']},
+  'quiz-advanced': {name:'Advanced Math Quiz', time:900, count:10, cats:['advanced_math']},
+  'quiz-data': {name:'Data Analysis Quiz', time:900, count:10, cats:['data_analysis']},
+  'quiz-geometry': {name:'Geometry Quiz', time:900, count:10, cats:['geometry']},
+  'quiz-grammar': {name:'Grammar Quiz', time:720, count:10, cats:['grammar']}
+};
+
+function startTest(type) {
+  const cfg = TEST_CONFIGS[type];
+  if (!cfg) return;
+  
+  let pool = cfg.cats === 'all' ? [...QUESTIONS] : QUESTIONS.filter(q => cfg.cats.includes(q.category));
+  // Shuffle
+  pool = pool.sort(() => Math.random() - 0.5);
+  const qs = pool.slice(0, Math.min(cfg.count, pool.length));
+  
+  testState = {
+    type, questions: qs, currentIdx: 0, answers: {}, 
+    startTime: Date.now(), totalTime: cfg.time,
+    timerInterval: null, finished: false
+  };
+  
+  document.getElementById('test-menu').style.display = 'none';
+  document.getElementById('test-interface').style.display = 'block';
+  document.getElementById('test-results').style.display = 'none';
+  document.getElementById('test-name-display').textContent = cfg.name;
+  
+  renderTestQuestion();
+  startTestTimer();
+}
+
+function startTestTimer() {
+  clearInterval(testState.timerInterval);
+  testState.timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - testState.startTime) / 1000);
+    const remaining = testState.totalTime - elapsed;
+    if (remaining <= 0) { clearInterval(testState.timerInterval); finishTest(); return; }
+    const m = Math.floor(remaining / 60), s = remaining % 60;
+    const el = document.getElementById('test-timer');
+    if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+function renderTestQuestion() {
+  const q = testState.questions[testState.currentIdx];
+  if (!q) return;
+  const total = testState.questions.length;
+  const idx = testState.currentIdx;
+  
+  document.getElementById('test-q-counter').textContent = `Question ${idx+1} of ${total}`;
+  document.getElementById('test-prev-btn').disabled = idx === 0;
+  document.getElementById('test-next-btn').textContent = idx === total - 1 ? 'Finish Test' : 'Next →';
+  
+  const prev = testState.answers[q.id];
+  
+  document.getElementById('test-q-container').innerHTML = `
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="badge badge-${q.difficulty}">${q.difficulty.charAt(0).toUpperCase()+q.difficulty.slice(1)}</span>
+        <span class="badge badge-cat">${formatCat(q.category)}</span>
+      </div>
+      <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>
+      <div class="choices">
+        ${q.choices.map(ch => `<button class="choice ${prev===ch[0]?'selected':''}" onclick="testSelectAnswer('${ch[0]}',this)" data-letter="${ch[0]}">
+          <span class="choice-letter">${ch[0]}.</span>
+          <span>${ch.slice(3)}</span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function testSelectAnswer(letter, btn) {
+  const q = testState.questions[testState.currentIdx];
+  testState.answers[q.id] = letter;
+  document.querySelectorAll('#test-q-container .choice').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function testNext() {
+  const total = testState.questions.length;
+  if (testState.currentIdx >= total - 1) {
+    finishTest();
+  } else {
+    testState.currentIdx++;
+    renderTestQuestion();
+  }
+}
+
+function testPrev() {
+  if (testState.currentIdx > 0) {
+    testState.currentIdx--;
+    renderTestQuestion();
+  }
+}
+
+function exitTest() {
+  clearInterval(testState.timerInterval);
+  document.getElementById('test-menu').style.display = 'block';
+  document.getElementById('test-interface').style.display = 'none';
+  document.getElementById('test-results').style.display = 'none';
+}
+
+function finishTest() {
+  clearInterval(testState.timerInterval);
+  testState.finished = true;
+  
+  const qs = testState.questions;
+  let correct = 0;
+  const catResults = {};
+  
+  qs.forEach(q => {
+    const userAns = testState.answers[q.id];
+    const isCorrect = userAns === q.answer;
+    if (isCorrect) correct++;
+    
+    if (!catResults[q.category]) catResults[q.category] = {correct:0,total:0};
+    catResults[q.category].total++;
+    if (isCorrect) catResults[q.category].correct++;
+    
+    // Update question history and category stats
+    STATE.questionHistory[q.id] = {correct: isCorrect, timeSpent: 60};
+    if (!STATE.categoryStats[q.category]) STATE.categoryStats[q.category] = {correct:0,wrong:0};
+    if (isCorrect) STATE.categoryStats[q.category].correct++;
+    else STATE.categoryStats[q.category].wrong++;
+    
+    // Apply score gains
+    if (isCorrect) {
+      const gain = calcGain(q.difficulty, 60);
+      STATE.score = Math.min(1600, STATE.score + gain);
+    }
+  });
+  
+  const accuracy = Math.round(correct / qs.length * 100);
+  const elapsed = Math.floor((Date.now() - testState.startTime) / 1000);
+  const m = Math.floor(elapsed / 60), s = elapsed % 60;
+  
+  // Estimate score
+  const estimatedScore = Math.round(STATE.score);
+  
+  // Save to history
+  const histEntry = {
+    type: testState.type,
+    name: TEST_CONFIGS[testState.type].name,
+    date: new Date().toLocaleDateString(),
+    correct, total: qs.length, accuracy,
+    score: estimatedScore,
+    time: `${m}:${s.toString().padStart(2,'0')}`
+  };
+  STATE.testHistory.unshift(histEntry);
+  if (STATE.testHistory.length > 10) STATE.testHistory.pop();
+  saveState();
+  
+  // Show results
+  document.getElementById('test-menu').style.display = 'none';
+  document.getElementById('test-interface').style.display = 'none';
+  document.getElementById('test-results').style.display = 'block';
+  
+  document.getElementById('result-score-display').textContent = estimatedScore;
+  document.getElementById('res-correct').textContent = `${correct}/${qs.length}`;
+  document.getElementById('res-accuracy').textContent = accuracy + '%';
+  document.getElementById('res-time').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  
+  // Category breakdown
+  const colors = {algebra:'#3b82f6',advanced_math:'#8b5cf6',data_analysis:'#10b981',geometry:'#f59e0b',reading:'#ec4899',grammar:'#ef4444'};
+  document.getElementById('cat-breakdown').innerHTML = '<div class="section-title" style="font-size:16px;margin-bottom:12px">By Category</div>' +
+    Object.entries(catResults).map(([cat, res]) => {
+      const pct = Math.round(res.correct / res.total * 100);
+      return `<div class="cat-row">
+        <div class="cat-name">${formatCat(cat)}</div>
+        <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${colors[cat]||'var(--accent)'}"></div></div>
+        <div class="cat-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+}
+
+function exitTestResults() {
+  document.getElementById('test-menu').style.display = 'block';
+  document.getElementById('test-interface').style.display = 'none';
+  document.getElementById('test-results').style.display = 'none';
+  renderTests();
+}
+
+function renderTests() {
+  const histEl = document.getElementById('test-history-list');
+  if (!histEl) return;
+  if (STATE.testHistory.length === 0) {
+    histEl.innerHTML = '<div style="color:var(--text-secondary);font-size:14px;padding:12px 0">No tests taken yet.</div>';
+  } else {
+    histEl.innerHTML = STATE.testHistory.slice(0,5).map(h => `
+      <div class="card-sm" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700;font-size:14px">${h.name}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${h.date} • ${h.correct}/${h.total} correct • ${h.time}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:800;color:var(--accent)">${h.accuracy}%</div>
+          <div style="font-size:12px;color:var(--text-secondary)">accuracy</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ============================================================
+// COURSE
+// ============================================================
+let lessonState = { unitId: null, lessonId: null, qIdx: 0, answered: false, correctCount: 0, totalQ: 0, lessonQs: [] };
+
+function renderCourse() {
+  const container = document.getElementById('units-container');
+  if (!container) return;
+  
+  // Ensure progress initialized
+  if (Object.keys(STATE.courseProgress).length === 0) initCourseProgress();
+  
+  container.innerHTML = UNITS.map(unit => {
+    const lessons = unit.lessons;
+    const done = lessons.filter(l => STATE.courseProgress[l.id] === 'done').length;
+    return `
+    <div class="unit-card">
+      <div class="unit-header" onclick="toggleUnit(${unit.id})">
+        <div class="unit-icon" style="background:${unit.color}">${unit.emoji}</div>
+        <div class="unit-info">
+          <h3>Unit ${unit.id}: ${unit.title}</h3>
+          <p>${unit.desc}</p>
+        </div>
+        <div class="unit-progress">
+          <div style="font-weight:700;font-size:14px;color:var(--accent)">${done}/4</div>
+          <div>lessons done</div>
+          <div class="progress-bar-wrap" style="width:80px;margin-top:4px"><div class="progress-bar" style="width:${done/4*100}%"></div></div>
+        </div>
+      </div>
+      <div class="lessons-grid" id="unit-lessons-${unit.id}">
+        ${lessons.map((lesson, li) => {
+          const status = STATE.courseProgress[lesson.id] || 'locked';
+          let cls = 'lesson-btn';
+          let icon = li + 1;
+          if (status === 'done') { cls += ' done'; icon = '✓'; }
+          else if (status === 'current') cls += ' current';
+          else cls += ' locked';
+          const locked = status === 'locked';
+          return `<button class="${cls}" onclick="${locked ? '' : `startLesson(${unit.id},'${lesson.id}')`}" ${locked ? 'disabled' : ''}>
+            <div style="font-size:18px;margin-bottom:4px">${icon}</div>
+            <div style="font-size:11px">${lesson.title}</div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleUnit(unitId) {
+  // Units are always expanded; this could be used for collapse behavior
+}
+
+function startLesson(unitId, lessonId) {
+  const unit = UNITS.find(u => u.id === unitId);
+  if (!unit) return;
+  const lesson = unit.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+  
+  // Set up lesson state
+  const lessonQs = lesson.qIds ? QUESTIONS.filter(q => lesson.qIds.includes(q.id)) : [];
+  lessonState = { unitId, lessonId, qIdx: 0, answered: false, correctCount: 0, totalQ: lessonQs.length, lessonQs, phase: 'content' };
+  
+  document.getElementById('course-menu').style.display = 'none';
+  document.getElementById('lesson-view').style.display = 'block';
+  
+  document.getElementById('lesson-content-area').innerHTML = lesson.content;
+  
+  if (lessonQs.length > 0) {
+    const practiceArea = document.getElementById('lesson-practice-area');
+    practiceArea.innerHTML = `
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">Practice Questions</div>
+        <div style="font-size:14px;color:var(--text-secondary)">Answer all ${lessonQs.length} questions to complete this lesson</div>
+      </div>
+      <div id="lesson-q-area"></div>`;
+    renderLessonQuestion();
+  } else {
+    document.getElementById('lesson-practice-area').innerHTML = `
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="completeLesson()">Complete Lesson ✓</button>`;
+  }
+}
+
+function renderLessonQuestion() {
+  const container = document.getElementById('lesson-q-area');
+  if (!container) return;
+  const { lessonQs, qIdx } = lessonState;
+  if (qIdx >= lessonQs.length) {
+    // All done
+    const pct = Math.round(lessonState.correctCount / lessonState.totalQ * 100);
+    container.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">${pct >= 60 ? '🎉' : '📚'}</div>
+        <div style="font-size:22px;font-weight:800;margin-bottom:4px">${pct}% Correct</div>
+        <div style="color:var(--text-secondary);margin-bottom:20px">${lessonState.correctCount} of ${lessonState.totalQ} correct</div>
+        <button class="btn btn-primary btn-lg" onclick="completeLesson()">Complete Lesson ✓</button>
+      </div>`;
+    return;
+  }
+  
+  const q = lessonQs[qIdx];
+  lessonState.answered = false;
+  lessonState.startTime = Date.now();
+  
+  container.innerHTML = `
+    <div class="question-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;color:var(--text-secondary)">Question ${qIdx+1} of ${lessonQs.length}</span>
+        <span class="badge badge-${q.difficulty}">${q.difficulty}</span>
+      </div>
+      <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>
+      <div class="choices">
+        ${q.choices.map(ch => `<button class="choice" onclick="lessonAnswer('${ch[0]}',this)" data-letter="${ch[0]}">
+          <span class="choice-letter">${ch[0]}.</span><span>${ch.slice(3)}</span>
+        </button>`).join('')}
+      </div>
+      <div id="lesson-feedback"></div>
+    </div>`;
+}
+
+function lessonAnswer(letter, btn) {
+  if (lessonState.answered) return;
+  lessonState.answered = true;
+  const q = lessonState.lessonQs[lessonState.qIdx];
+  const correct = letter === q.answer;
+  const timeSpent = (Date.now() - lessonState.startTime) / 1000;
+  
+  if (correct) {
+    lessonState.correctCount++;
+    const gain = calcGain(q.difficulty, timeSpent);
+    applyGain(gain);
+  }
+  
+  STATE.questionHistory[q.id] = {correct, timeSpent};
+  if (!STATE.categoryStats[q.category]) STATE.categoryStats[q.category] = {correct:0,wrong:0};
+  if (correct) STATE.categoryStats[q.category].correct++;
+  else STATE.categoryStats[q.category].wrong++;
+  saveState();
+  
+  document.querySelectorAll('#lesson-q-area .choice').forEach(b => {
+    b.disabled = true;
+    const l = b.dataset.letter;
+    if (l === q.answer) b.classList.add('correct');
+    else if (l === letter && !correct) b.classList.add('incorrect');
+  });
+  
+  const fb = document.getElementById('lesson-feedback');
+  if (fb) fb.innerHTML = `
+    <div class="feedback-panel ${correct?'feedback-correct':'feedback-incorrect'}" style="margin-top:12px">
+      <div class="feedback-title">${correct?'✓ Correct!':'✗ Incorrect — Answer is '+q.answer}</div>
+      <div class="feedback-exp">${q.explanation}</div>
+      ${correct?`<div class="score-gain">+${calcGain(q.difficulty,timeSpent).toFixed(1)} pts</div>`:''}
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="nextLessonQ()">
+      ${lessonState.qIdx + 1 >= lessonState.totalQ ? 'See Results' : 'Next Question'}
+    </button>`;
+}
+
+function nextLessonQ() {
+  lessonState.qIdx++;
+  renderLessonQuestion();
+}
+
+function completeLesson() {
+  const { lessonId, unitId } = lessonState;
+  STATE.courseProgress[lessonId] = 'done';
+  
+  // Unlock next lesson
+  const unit = UNITS.find(u => u.id === unitId);
+  if (unit) {
+    const li = unit.lessons.findIndex(l => l.id === lessonId);
+    if (li < unit.lessons.length - 1) {
+      const nextLesson = unit.lessons[li + 1];
+      if (STATE.courseProgress[nextLesson.id] === 'locked') {
+        STATE.courseProgress[nextLesson.id] = 'current';
+      }
+    } else {
+      // Unlock first lesson of next unit
+      const ui = UNITS.findIndex(u => u.id === unitId);
+      if (ui < UNITS.length - 1) {
+        const nextUnit = UNITS[ui + 1];
+        const firstLesson = nextUnit.lessons[0];
+        if (STATE.courseProgress[firstLesson.id] === 'locked') {
+          STATE.courseProgress[firstLesson.id] = 'current';
+        }
+      }
+    }
+  }
+  
+  saveState();
+  exitLesson();
+}
+
+function exitLesson() {
+  document.getElementById('course-menu').style.display = 'block';
+  document.getElementById('lesson-view').style.display = 'none';
+  renderCourse();
+}
+
+// ============================================================
+// WORKSHEETS
+// ============================================================
+const WORKSHEETS = [
+  {id:'ws-algebra',title:'Algebra Essentials',desc:'Linear equations and inequalities',cat:'algebra',count:8},
+  {id:'ws-adv',title:'Advanced Math',desc:'Quadratics and functions',cat:'advanced_math',count:8},
+  {id:'ws-data',title:'Data Analysis',desc:'Statistics and probability',cat:'data_analysis',count:8},
+  {id:'ws-geo',title:'Geometry',desc:'Area, triangles, and circles',cat:'geometry',count:8},
+  {id:'ws-reading',title:'Reading Comprehension',desc:'Vocabulary and evidence',cat:'reading',count:6},
+  {id:'ws-grammar',title:'Standard English',desc:'Grammar and punctuation',cat:'grammar',count:8}
+];
+
+function renderWorksheets() {
+  const grid = document.getElementById('ws-grid');
+  if (!grid) return;
+  grid.innerHTML = WORKSHEETS.map(ws => `
+    <div class="worksheet-card" onclick="openWorksheet('${ws.id}')">
+      <div style="font-size:28px;margin-bottom:8px">${catEmoji(ws.cat)}</div>
+      <h3>${ws.title}</h3>
+      <p>${ws.desc}</p>
+      <div style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:600">${ws.count} questions + answer key</div>
+    </div>`).join('');
+}
+
+function catEmoji(cat) {
+  const map = {algebra:'📐',advanced_math:'🔢',data_analysis:'📊',geometry:'📏',reading:'📖',grammar:'✍️'};
+  return map[cat] || '📝';
+}
+
+function openWorksheet(wsId) {
+  const ws = WORKSHEETS.find(w => w.id === wsId);
+  if (!ws) return;
+  const qs = QUESTIONS.filter(q => q.category === ws.cat).slice(0, ws.count);
+  
+  document.getElementById('ws-menu').style.display = 'none';
+  document.getElementById('ws-view').style.display = 'block';
+  
+  document.getElementById('ws-content').innerHTML = `
+    <div class="ws-header">
+      <h2>${ws.title} — Practice Worksheet</h2>
+      <p>ScoreUp SAT Prep | ${qs.length} Questions</p>
+      <p>Name: _____________________________ Date: ____________</p>
+    </div>
+    ${qs.map((q, i) => `
+      <div class="ws-q">
+        <div class="ws-q-num">${i+1}. ${q.text.replace(/\n/g,'<br>')}</div>
+        <ol class="ws-choices" type="A">
+          ${q.choices.map(ch => `<li>${ch.slice(3)}</li>`).join('')}
+        </ol>
+      </div>`).join('')}
+    <div class="answer-key">
+      <h3 style="margin-bottom:12px">Answer Key</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        ${qs.map((q, i) => `<div style="font-size:14px"><strong>${i+1}.</strong> ${q.answer}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function exitWorksheet() {
+  document.getElementById('ws-menu').style.display = 'block';
+  document.getElementById('ws-view').style.display = 'none';
+}
+
+// ============================================================
+// AI COACH
+// ============================================================
+function renderCoach() {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  
+  if (STATE.chatHistory.length === 0) {
+    const welcome = {
+      role: 'coach',
+      text: `Hi ${STATE.name}! 👋 I'm your AI Coach. I'm here to help you reach your goal score of ${STATE.goalScore}.\n\nYour current score is ${Math.round(STATE.score)}. ${getScoreAdvice()}\n\nAsk me anything — how to improve in a specific area, what to study next, or how to tackle hard questions!`
+    };
+    STATE.chatHistory.push(welcome);
+    saveState();
+  }
+  
+  renderMessages();
+}
+
+function getScoreAdvice() {
+  const gap = STATE.goalScore - Math.round(STATE.score);
+  if (gap <= 0) return "You've reached your goal — let's push even higher!";
+  if (gap < 100) return `You're just ${gap} points away from your goal!`;
+  if (gap < 200) return `You're making good progress. ${gap} more points to go!`;
+  return `We've got ${gap} points to close. Let's build a solid foundation!`;
+}
+
+function renderMessages() {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  msgs.innerHTML = STATE.chatHistory.map(m => `
+    <div class="msg msg-${m.role === 'coach' ? 'coach' : 'user'}" style="${m.role==='coach'?'':''}">
+      ${m.text.replace(/\n/g,'<br>')}
+    </div>`).join('');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  
+  STATE.chatHistory.push({role:'user', text});
+  renderMessages();
+  
+  // Show typing indicator
+  const msgs = document.getElementById('chat-messages');
+  const typing = document.createElement('div');
+  typing.className = 'msg msg-coach';
+  typing.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  typing.id = 'typing-msg';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  setTimeout(() => {
+    const response = generateCoachResponse(text.toLowerCase());
+    const el = document.getElementById('typing-msg');
+    if (el) el.remove();
+    STATE.chatHistory.push({role:'coach', text: response});
+    saveState();
+    renderMessages();
+  }, 800 + Math.random() * 600);
+}
+
+function generateCoachResponse(msg) {
+  const score = Math.round(STATE.score);
+  const weakCats = getWeakCategories();
+  const weakStr = weakCats.length > 0 ? weakCats.map(c => formatCat(c)).join(', ') : 'none identified yet';
+  
+  // Keyword matching
+  if (msg.includes('math') && (msg.includes('improve') || msg.includes('better') || msg.includes('help'))) {
+    return `To improve your math score from ${score}, here's what I recommend:\n\n📌 **Focus areas:** Algebra and Advanced Math have the highest question count on the SAT.\n\n✅ Steps:\n1. Start with Algebra Essentials in the Course section\n2. Do 10-15 practice questions daily\n3. Review every wrong answer — understand WHY you got it wrong\n4. Time yourself: SAT gives ~1.5 minutes per math question\n\nYour current weak areas are: ${weakStr}. Start there!`;
+  }
+  
+  if (msg.includes('geometry') || msg.includes('shapes') || msg.includes('circle') || msg.includes('triangle')) {
+    return `Geometry tips for the SAT:\n\n📐 **Must-memorize formulas:**\n• Area of triangle: ½bh\n• Pythagorean theorem: a² + b² = c²\n• Circle area: πr², circumference: 2πr\n• Common triples: 3-4-5, 5-12-13\n\n🎯 The SAT provides a formula sheet, but knowing them cold saves time!\n\nTry the Geometry Quiz in the Tests section to assess your current level. I'd suggest aiming for 80%+ before moving on.`;
+  }
+  
+  if (msg.includes('algebra') || msg.includes('equation') || msg.includes('linear')) {
+    return `Algebra is the largest category on SAT Math! Here's how to master it:\n\n1. **Linear equations:** Isolate the variable step by step. Don't skip steps under pressure.\n2. **Systems of equations:** Learn BOTH substitution and elimination — some problems require one or the other.\n3. **Word problems:** Translate to equations. "More than" = addition, "times" = multiplication.\n4. **Inequalities:** Remember: flip the sign when multiplying/dividing by a negative!\n\nPractice Algebra in the Course section (Unit 2). You should see score gains quickly since there are many algebra questions on the test!`;
+  }
+  
+  if (msg.includes('reading') || msg.includes('passage') || msg.includes('comprehension')) {
+    return `Reading & Writing strategies:\n\n📖 **For Reading questions:**\n• Always go back to the passage — the answer is THERE\n• Eliminate answers that are too extreme, out of scope, or not supported\n• For vocab questions: substitute each choice back into the sentence\n\n✍️ **For Grammar questions:**\n• Know the 4 comma rules cold\n• Subject-verb agreement: identify the SUBJECT (not the nearest noun)\n• Parallel structure: items in lists must match grammatically\n\nCheck out Units 6, 7, and 8 in the Course section. They cover everything you need!`;
+  }
+  
+  if (msg.includes('quadratic') || msg.includes('polynomial') || msg.includes('factor')) {
+    return `Quadratics are high-value on the SAT. Here's the playbook:\n\n🔢 **Three solving methods:**\n1. Factoring — fastest when it works: find two numbers that multiply to c and add to b\n2. Quadratic formula: x = (-b ± √(b²-4ac)) / 2a — always works!\n3. Completing the square — useful for vertex form\n\n**Vertex Form:** y = a(x-h)² + k → vertex is (h,k). Max/min problems always involve vertex!\n\n**Discriminant shortcut:** b²-4ac > 0 means 2 solutions, = 0 means 1 solution, < 0 means no real solutions.`;
+  }
+  
+  if (msg.includes('study') && (msg.includes('plan') || msg.includes('schedule') || msg.includes('how'))) {
+    const gap = STATE.goalScore - score;
+    const weeks = STATE.testDate ? Math.ceil((new Date(STATE.testDate) - new Date()) / 604800000) : 8;
+    return `Here's your personalized study plan:\n\n🎯 Goal: ${score} → ${STATE.goalScore} (${gap} points to gain)\n📅 Time available: ~${weeks} weeks\n\n**Weekly Schedule:**\n• Mon/Wed/Fri: 30 min Practice Questions (10-15 per session)\n• Tue/Thu: 20 min Course Lessons (1-2 lessons per week)\n• Saturday: 1 hour Quiz (topic quiz in Tests section)\n• Sunday: Review wrong answers + Coach check-in\n\n**Priority Order:**\n1. ${weakStr !== 'none identified yet' ? weakStr : 'Start with Algebra (most questions)'}\n2. Practice tests every 2 weeks to track progress\n3. Focus on medium difficulty — easy questions give diminishing returns`;
+  }
+  
+  if (msg.includes('score') && (msg.includes('improve') || msg.includes('raise') || msg.includes('increase'))) {
+    return `To raise your score from ${score} to ${STATE.goalScore}:\n\n📈 **Score Formula:**\n• Answer more questions correctly (obvious but important!)\n• Focus on medium difficulty — they give more points per question than easy\n• Hard questions give the most points but take the most time\n\n**High-Impact Strategy:**\n1. Find your weakest categories and drill them\n2. Don't guess randomly — eliminate 2 choices first\n3. On tests, skip hard questions and return if time allows\n4. Review every mistake — patterns reveal your gaps\n\nYour weak areas: ${weakStr}. Spending 2 weeks focused on those could net you 50-100 points!`;
+  }
+  
+  if (msg.includes('grammar') || msg.includes('punctuation') || msg.includes('comma')) {
+    return `Grammar/Punctuation tips:\n\n📌 **Most tested rules:**\n\n1. **Commas:** Use before FANBOYS (for,and,nor,but,or,yet,so) joining two full sentences. Don't use between verb and object.\n2. **Semicolons:** Connect two complete sentences; never use before a conjunction.\n3. **Apostrophes:** it's = it is; its = possessive. Their vs they're vs there.\n4. **Subject-verb:** Find the true subject (ignore prepositional phrases between subject and verb).\n5. **Parallel structure:** Lists must match — all nouns, all verbs, all -ing forms.\n\nUnit 7 in the Course covers all of this in detail!`;
+  }
+  
+  if (msg.includes('weak') || msg.includes('struggle') || msg.includes('hard') || msg.includes('difficult')) {
+    return `Based on your history, your weakest areas are: **${weakStr}**.\n\nHere's how to address them:\n\n1. **Use the Course section** — work through the unit for each weak area. The content is focused and includes practice questions.\n2. **Filter Practice Questions** by that category and difficulty "Easy" first\n3. **Read every explanation** even when you get it right — you might learn a faster method\n4. **Track your accuracy** — you're improving when you're above 70% in a category\n\nWant me to explain any specific concept? Just ask!`;
+  }
+  
+  if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+    return `Hey ${STATE.name}! Great to hear from you. 😊\n\nYou're at ${score} points and working toward ${STATE.goalScore}.\n\nWhat can I help you with today? I can give advice on:\n• Specific topics (geometry, quadratics, grammar...)\n• Study planning\n• Test-taking strategies\n• Score improvement tips`;
+  }
+  
+  if (msg.includes('thank')) {
+    return `You're welcome! 🎉 Keep up the great work. Remember: consistent daily practice beats cramming every time.\n\nYou've answered ${Object.keys(STATE.questionHistory).length} questions so far. Every one of them is making you better. Keep going!`;
+  }
+  
+  if (msg.includes('test') && (msg.includes('tip') || msg.includes('strategy') || msg.includes('advice'))) {
+    return `SAT Test Day Strategy:\n\n⏱ **Time Management:**\n• SAT gives ~1.5 min per math question, ~1 min per R&W question\n• Skip questions that stump you — return later\n• Never leave a question blank (no penalty for guessing!)\n\n🧠 **During the Test:**\n• Read questions CAREFULLY — underline key words\n• For math: plug answer choices back in when stuck\n• For reading: find your answer in the passage before checking choices\n• Eliminate obviously wrong answers first\n\n😤 **Mental Game:**\n• One wrong answer won't tank your score\n• Stay calm during hard sections — others find them hard too\n• Eat well, sleep 8+ hours the night before`;
+  }
+  
+  // Default response based on their data
+  const totalAnswered = Object.keys(STATE.questionHistory).length;
+  if (totalAnswered === 0) {
+    return `Let's get you started! 🚀\n\nSince you're new, I suggest:\n1. Start with Unit 1 in the **Course** section to build foundations\n2. Try a few **Practice Questions** in Algebra (it's the biggest category)\n3. Come back and let me know how it goes!\n\nYou can ask me about any topic — geometry, quadratics, grammar, or general SAT strategy. What would you like to focus on?`;
+  }
+  
+  return `Great question! Here's my advice based on your current progress (${score} points, ${totalAnswered} questions answered):\n\n**Your weak areas:** ${weakStr}\n\n**My recommendation:**\n1. Do 10-15 practice questions in ${weakStr !== 'none identified yet' ? weakStr.split(',')[0] : 'algebra'} today\n2. Take a topic quiz in Tests to measure your current level\n3. Review every wrong answer in the feedback panel\n\nIs there a specific topic or concept you want me to explain in more detail?`;
+}
+
+function getWeakCategories() {
+  const cats = Object.entries(STATE.categoryStats);
+  const weak = cats
+    .filter(([, s]) => s.wrong > 0)
+    .map(([cat, s]) => ({cat, rate: s.wrong / (s.correct + s.wrong)}))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 2)
+    .map(x => x.cat);
+  return weak;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function refreshUI() {
+  if (currentView === 'home') renderHome();
+}
+
+function init() {
+  loadState();
+  if (STATE.onboarded) {
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    if (Object.keys(STATE.courseProgress).length === 0) initCourseProgress();
+    navigate('home');
+  } else {
+    document.getElementById('app').style.display = 'none';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

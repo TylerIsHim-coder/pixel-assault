@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudBud — AI Study Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────── */
+    :root {
+      --bg: #FFFFFF;
+      --surface: #F8F8F8;
+      --surface-2: #F2F2F2;
+      --border: #E8E8E8;
+      --border-focus: #0A0A0A;
+      --text-primary: #0A0A0A;
+      --text-secondary: #6B6B6B;
+      --text-tertiary: #A0A0A0;
+      --accent: #0A0A0A;
+      --accent-hover: #2A2A2A;
+      --dot-filled: #0A0A0A;
+      --dot-empty: #EBEBEB;
+      --success: #1A8C3E;
+      --error: #C0392B;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+      --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input  { font-family: inherit; outline: none; border: none; background: none; }
+    a      { text-decoration: none; color: inherit; }
+
+    /* ─── App Shell ──────────────────────────────────────────── */
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ─── Nav Bar ────────────────────────────────────────────── */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      display: none;
+    }
+    #nav.visible { display: flex; }
+    .nav-logo {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+    }
+    #nav-points {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    #nav-star { font-size: 16px; display: inline-block; }
+    #nav-profile {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity var(--transition);
+      border: none;
+    }
+    #nav-profile:hover { opacity: 0.8; }
+
+    /* ─── Views ──────────────────────────────────────────────── */
+    .view {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow-y: auto;
+      display: none;
+    }
+    .view.active { display: block; }
+    .view-body {
+      padding: 84px 24px 40px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ─── Onboarding ─────────────────────────────────────────── */
+    #view-onboarding {
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .slides-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .slide-content {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    /* Slide 1 — Welcome */
+    .slide-logo {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .slide-tagline {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+      line-height: 1.5;
+    }
+
+    /* Question slides */
+    .slide-question {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.25;
+      margin-bottom: 8px;
+      animation: floatText 4.2s ease-in-out infinite;
+    }
+    .slide-question-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      font-weight: 400;
+      animation: floatText 3.8s ease-in-out 1.1s infinite;
+    }
+    .slide-input {
+      width: 100%;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      padding: 12px 0;
+      margin-bottom: 36px;
+      text-align: center;
+      transition: border-color 200ms;
+      background: transparent;
+      letter-spacing: -0.01em;
+    }
+    .slide-input:focus {
+      border-bottom-color: var(--border-focus);
+    }
+    .slide-input::placeholder { color: var(--text-tertiary); }
+
+    /* Dot chart */
+    .dot-chart-content { text-align: center; }
+    .dot-headline {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .dot-headline span {
+      font-weight: 900;
+    }
+    .dot-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
+    #dot-grid {
+      display: grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap: 7px;
+      width: fit-content;
+      margin: 0 auto 16px;
+    }
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+    .dot--filled { background: var(--dot-filled); }
+    .dot--empty  { background: var(--dot-empty); }
+    .dot-legend {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 28px;
+    }
+    .dot-cta {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+    }
+
+    /* Ready slide */
+    .slide-ready-name {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+    .slide-ready-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ready-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 16px 32px;
+      border-radius: var(--radius-full);
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      letter-spacing: -0.01em;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-2);
+      border-color: #D0D0D0;
+    }
+    .btn-ghost {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      transition: color var(--transition), background var(--transition);
+    }
+    .btn-ghost:hover { color: var(--text-primary); background: var(--surface); }
+
+    /* Slide progress dots */
+    .slide-dots {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 7px;
+    }
+    .slide-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--dot-empty);
+      transition: background 300ms, transform 300ms;
+    }
+    .slide-dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+    }
+
+    /* ─── Dashboard ──────────────────────────────────────────── */
+    .greeting {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+    .greeting-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      font-weight: 400;
+    }
+    .btn-upload-hero {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 18px 24px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: var(--shadow-sm);
+      letter-spacing: -0.01em;
+    }
+    .btn-upload-hero:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+    }
+    .guide-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .guide-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+    .guide-card:hover {
+      border-color: #D0D0D0;
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+    .guide-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .subject-pill {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 3px 10px;
+      color: var(--text-secondary);
+    }
+    .guide-date {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+    .guide-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 14px;
+      color: var(--text-primary);
+    }
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .progress-bar-wrap {
+      flex: 1;
+      height: 4px;
+      background: var(--dot-empty);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 400ms ease;
+    }
+    .progress-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .guide-pts-earned {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    /* Empty dashboard */
+    .empty-state {
+      text-align: center;
+      padding: 60px 0;
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .empty-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
+
+    /* ─── Upload ─────────────────────────────────────────────── */
+    .view-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .btn-back {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-primary);
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+    .btn-back:hover { background: var(--surface-2); }
+    .view-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .drop-zone {
+      width: 100%;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 200ms, background 200ms;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .drop-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+    .drop-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .drop-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .file-preview {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .file-preview.visible { display: flex; }
+    .file-icon-wrap {
+      width: 40px; height: 40px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-size {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .btn-remove {
+      color: var(--text-tertiary);
+      font-size: 20px;
+      line-height: 1;
+      transition: color var(--transition);
+      padding: 4px;
+    }
+    .btn-remove:hover { color: var(--text-primary); }
+    #btn-generate {
+      width: 100%;
+      padding: 18px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background var(--transition), opacity var(--transition);
+    }
+    #btn-generate:hover:not(:disabled) { background: var(--accent-hover); }
+    #btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    /* ─── Study Guide ────────────────────────────────────────── */
+    .guide-meta { margin-bottom: 20px; }
+    .guide-subject-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .guide-main-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+    .guide-source {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-bottom: 16px;
+    }
+    .guide-progress-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 28px;
+    }
+    .guide-progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .guide-progress-label span { color: var(--text-secondary); font-weight: 400; }
+    .guide-progress-bar-wrap {
+      height: 6px;
+      background: var(--dot-empty);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .guide-progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .guide-section { margin-bottom: 28px; }
+    .guide-section-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 10px;
+    }
+    .task-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      user-select: none;
+    }
+    .task-row:hover { border-color: #D0D0D0; }
+    .task-row.completed {
+      background: var(--bg);
+      border-color: var(--border);
+    }
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .task-row.completed .task-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .check-icon {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 200ms;
+    }
+    .task-row.completed .check-icon { opacity: 1; }
+    .task-body { flex: 1; min-width: 0; }
+    .task-text {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text-primary);
+      transition: color var(--transition), opacity var(--transition);
+    }
+    .task-row.completed .task-text {
+      text-decoration: line-through;
+      opacity: 0.45;
+    }
+    .task-pts {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      margin-top: 3px;
+      transition: color var(--transition);
+    }
+    .task-row.completed .task-pts { color: var(--success); }
+    .guide-complete-banner {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .guide-complete-banner.visible { display: block; }
+    .guide-complete-emoji { font-size: 32px; margin-bottom: 8px; }
+    .guide-complete-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .guide-complete-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+    /* ─── Profile ────────────────────────────────────────────── */
+    .profile-avatar {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .profile-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+    .profile-meta {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .points-display {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .points-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .points-number {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 2px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .profile-actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-danger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--error);
+      background: #FDF2F2;
+      border: 1px solid #F0C8C8;
+      border-radius: var(--radius-md);
+      transition: background var(--transition);
+    }
+    .btn-danger:hover { background: #F9E5E5; }
+
+    /* ─── Modal ──────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 500;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--bg);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 28px 24px 40px;
+      width: 100%;
+      max-width: 560px;
+      transform: translateY(20px);
+      transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-primary);
+      background: var(--surface);
+      margin-bottom: 14px;
+      transition: border-color 200ms;
+    }
+    .modal-input:focus { border-color: var(--border-focus); background: var(--bg); }
+    .modal-input::placeholder { color: var(--text-tertiary); }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-actions .btn-secondary { flex: 1; justify-content: center; }
+    .modal-actions .btn-primary   { flex: 2; justify-content: center; }
+
+    /* Confirm modal */
+    #modal-confirm .modal { border-radius: var(--radius-lg); margin: auto; max-width: 380px; width: calc(100% - 40px); }
+    #modal-confirm { align-items: center; }
+
+    /* ─── Toast ──────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--text-primary);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      white-space: nowrap;
+    }
+    .toast.error { background: var(--error); }
+
+    /* ─── Confetti ───────────────────────────────────────────── */
+    .confetti-piece {
+      position: fixed;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999;
+      animation: confettiBurst 0.75s ease-out forwards;
+    }
+
+    /* ─── Keyframes ──────────────────────────────────────────── */
+    @keyframes floatText {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-7px); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    @keyframes confettiBurst {
+      0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .slide-logo { font-size: 40px; }
+      .slide-question { font-size: 24px; }
+      .greeting { font-size: 22px; }
+      .guide-main-title { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ NAV ═══════════════════════════════════════════════════ -->
+  <nav id="nav">
+    <span class="nav-logo">StudBud</span>
+    <div id="nav-points">
+      <span id="nav-star">⭐</span>
+      <span id="nav-pts-text">0 pts</span>
+    </div>
+    <button id="nav-profile" onclick="Router.go('profile')">?</button>
+  </nav>
+
+  <!-- ═══ ONBOARDING ════════════════════════════════════════════ -->
+  <div id="view-onboarding" class="view active">
+    <div class="slides-wrap">
+
+      <!-- Slide 1: Welcome -->
+      <div class="slide active" id="slide-0">
+        <div class="slide-content">
+          <div class="slide-logo" id="sb-logo">StudBud</div>
+          <p class="slide-tagline" id="sb-tagline">Your AI study companion</p>
+          <button class="btn-primary" id="btn-start" onclick="Onboarding.nextSlide()">
+            Get started <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Slide 2: Name -->
+      <div class="slide" id="slide-1">
+        <div class="slide-content">
+          <h2 class="slide-question">What's your name?</h2>
+          <p class="slide-question-sub">We'll personalize your experience</p>
+          <input class="slide-input" id="input-name" type="text" placeholder="Your name" autocomplete="off" />
+          <div id="btn-wrap-name" style="opacity:0;">
+            <button class="btn-primary" onclick="Onboarding.nextSlide()">Continue →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Age -->
+      <div class="slide" id="slide-2">
+        <div class="slide-content">
+          <h2 class="slide-question">How old are you?</h2>
+          <p class="slide-question-sub">Helps us tailor your study guides</p>
+          <input class="slide-input" id="input-age" type="number" min="5" max="100" placeholder="Your age" />
+          <div id="btn-wrap-age" style="opacity:0;">
+            <button class="btn-primary" onclick="Onboarding.nextSlide()">Continue →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Wasted hours + dot chart -->
+      <div class="slide" id="slide-3">
+        <div class="slide-content">
+          <!-- Phase A: question -->
+          <div id="slide3-question">
+            <h2 class="slide-question">How many hours per week do you spend studying the wrong topics?</h2>
+            <p class="slide-question-sub">Be honest — this is just between us</p>
+            <input class="slide-input" id="input-hours" type="number" min="0" max="60" placeholder="Hours per week" />
+            <div id="btn-wrap-hours" style="opacity:0;">
+              <button class="btn-primary" onclick="Onboarding.showDotChart()">See the impact →</button>
+            </div>
+          </div>
+          <!-- Phase B: dot chart -->
+          <div id="slide3-dotchart" style="display:none; opacity:0;">
+            <div class="dot-chart-content">
+              <h2 class="dot-headline" id="dot-headline">That's <span id="dot-hours-total">0</span> hours<br>of your year.</h2>
+              <p class="dot-sub">Each dot = one week of your year</p>
+              <div id="dot-grid"></div>
+              <p class="dot-legend">Wasted weeks <span style="display:inline-block;width:10px;height:10px;background:var(--dot-filled);border-radius:50%;margin: 0 4px -1px;"></span> vs productive <span style="display:inline-block;width:10px;height:10px;background:var(--dot-empty);border-radius:50%;margin: 0 4px -1px; border: 1px solid #ccc;"></span></p>
+              <p class="dot-cta" id="dot-cta" style="opacity:0;">StudBud gives that time back.</p>
+              <div id="btn-wrap-dot" style="opacity:0;">
+                <button class="btn-primary" onclick="Onboarding.nextSlide()">Let's fix that →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Ready -->
+      <div class="slide" id="slide-4">
+        <div class="slide-content">
+          <h2 class="slide-ready-name" id="ready-name">Ready?</h2>
+          <div class="slide-ready-sub" id="ready-pills"></div>
+          <button class="btn-primary" onclick="Onboarding.finish()">Let's go →</button>
+        </div>
+      </div>
+
+    </div><!-- /slides-wrap -->
+
+    <!-- Progress dots -->
+    <div class="slide-dots" id="slide-dots">
+      <div class="slide-dot active"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+    </div>
+  </div><!-- /view-onboarding -->
+
+  <!-- ═══ DASHBOARD ══════════════════════════════════════════════ -->
+  <div id="view-dashboard" class="view">
+    <div class="view-body">
+      <h1 class="greeting" id="dashboard-greeting">Good morning!</h1>
+      <p class="greeting-sub" id="dashboard-sub">Here's what you're studying.</p>
+      <button class="btn-upload-hero" onclick="Router.go('upload')">
+        <span>+</span> Upload new material
+      </button>
+      <p class="section-label">Your Study Guides</p>
+      <div id="guide-cards-wrap">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ UPLOAD ════════════════════════════════════════════════ -->
+  <div id="view-upload" class="view">
+    <div class="view-body">
+      <div class="view-header">
+        <button class="btn-back" onclick="Router.go('dashboard')">←</button>
+        <h2 class="view-title">Upload Material</h2>
+      </div>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.heic,.webp" />
+        <span class="drop-icon">📄</span>
+        <p class="drop-title">Drop a PDF or image here</p>
+        <p class="drop-sub">Supports PDF, JPG, PNG, HEIC, WEBP</p>
+      </div>
+      <div class="file-preview" id="file-preview">
+        <div class="file-icon-wrap" id="file-icon">📄</div>
+        <div class="file-info">
+          <p class="file-name" id="file-name">file.pdf</p>
+          <p class="file-size" id="file-size">0 KB</p>
+        </div>
+        <button class="btn-remove" onclick="Upload.clearFile()" title="Remove">×</button>
+      </div>
+      <button id="btn-generate" disabled onclick="Upload.generate()">
+        <div class="spinner" id="generate-spinner"></div>
+        <span id="btn-generate-text">Generate Study Guide</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ STUDY GUIDE ══════════════════════════════════════════ -->
+  <div id="view-guide" class="view">
+    <div class="view-body">
+      <div class="view-header">
+        <button class="btn-back" onclick="Router.go('dashboard')">←</button>
+        <h2 class="view-title">Study Guide</h2>
+      </div>
+      <div id="guide-content">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PROFILE ══════════════════════════════════════════════ -->
+  <div id="view-profile" class="view">
+    <div class="view-body">
+      <div class="view-header">
+        <button class="btn-back" onclick="Router.go('dashboard')">←</button>
+        <h2 class="view-title">Profile</h2>
+      </div>
+      <div id="profile-content">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ═══ MODALS ════════════════════════════════════════════════ -->
+<!-- API Key Modal -->
+<div class="modal-overlay" id="modal-api">
+  <div class="modal">
+    <h3 class="modal-title">Enter your API Key</h3>
+    <p class="modal-sub">Your Anthropic API key is stored locally in your browser and never sent anywhere except Anthropic's servers.</p>
+    <input class="modal-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="Modal.closeApi()">Cancel</button>
+      <button class="btn-primary" onclick="Modal.saveApi()">Save & Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <h3 class="modal-title" id="confirm-title">Are you sure?</h3>
+    <p class="modal-sub" id="confirm-sub">This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="Modal.closeConfirm()">Cancel</button>
+      <button class="btn-primary" id="btn-confirm-ok" style="background:#C0392B;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+// PDF.js worker
+// ══════════════════════════════════════════════════════════════
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+const State = (() => {
+  const KEYS = {
+    profile: 'studbud_profile',
+    apiKey:  'studbud_api_key',
+    guides:  'studbud_guides',
+    points:  'studbud_points',
+  };
+  const mem = {};
+
+  function load() {
+    mem.profile = JSON.parse(localStorage.getItem(KEYS.profile) || 'null');
+    mem.apiKey  = localStorage.getItem(KEYS.apiKey) || null;
+    mem.guides  = JSON.parse(localStorage.getItem(KEYS.guides) || '[]');
+    mem.points  = JSON.parse(localStorage.getItem(KEYS.points) || '{"total":0,"history":[]}');
+  }
+
+  function get(k)    { return mem[k]; }
+
+  function set(k, v) {
+    mem[k] = v;
+    const storageKey = KEYS[k];
+    if (!storageKey) return;
+    if (typeof v === 'string' || v === null) {
+      if (v === null) localStorage.removeItem(storageKey);
+      else localStorage.setItem(storageKey, v);
+    } else {
+      localStorage.setItem(storageKey, JSON.stringify(v));
+    }
+  }
+
+  function clearAll() {
+    Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+    load();
+  }
+
+  return { load, get, set, clearAll };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════════════════
+const Router = (() => {
+  const views = {
+    onboarding: document.getElementById('view-onboarding'),
+    dashboard:  document.getElementById('view-dashboard'),
+    upload:     document.getElementById('view-upload'),
+    guide:      document.getElementById('view-guide'),
+    profile:    document.getElementById('view-profile'),
+  };
+  const nav = document.getElementById('nav');
+  let current = 'onboarding';
+
+  function go(name) {
+    if (!views[name]) return;
+
+    // Fade out current
+    const fromEl = views[current];
+    gsap.to(fromEl, {
+      opacity: 0, duration: 0.2, ease: 'power1.in',
+      onComplete: () => {
+        fromEl.classList.remove('active');
+        fromEl.style.opacity = '';
+
+        const toEl = views[name];
+        toEl.classList.add('active');
+        gsap.fromTo(toEl, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power1.out' });
+
+        current = name;
+        updateNav();
+
+        // Trigger per-view render
+        if (name === 'dashboard') Dashboard.render();
+        if (name === 'profile')   Profile.render();
+      }
+    });
+  }
+
+  function updateNav() {
+    if (current === 'onboarding') {
+      nav.classList.remove('visible');
+    } else {
+      nav.classList.add('visible');
+      NavBar.render();
+    }
+  }
+
+  return { go, updateNav };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// NAV BAR
+// ══════════════════════════════════════════════════════════════
+const NavBar = (() => {
+  function render() {
+    const profile = State.get('profile');
+    const points  = State.get('points');
+    const initial = profile ? profile.name.charAt(0).toUpperCase() : '?';
+    document.getElementById('nav-profile').textContent = initial;
+    document.getElementById('nav-pts-text').textContent = (points.total || 0).toLocaleString() + ' pts';
+  }
+
+  function animatePoints(from, to) {
+    const el = document.getElementById('nav-pts-text');
+    const star = document.getElementById('nav-star');
+    const obj = { val: from };
+    gsap.to(obj, {
+      val: to, duration: 0.6, ease: 'power2.out',
+      onUpdate: () => { el.textContent = Math.round(obj.val).toLocaleString() + ' pts'; }
+    });
+    gsap.fromTo(star, { scale: 1 }, { scale: 1.5, duration: 0.15, yoyo: true, repeat: 1, ease: 'power2.out' });
+  }
+
+  return { render, animatePoints };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════
+function showToast(msg, type = 'default') {
+  const wrap = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'error' ? ' error' : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => {
+    gsap.to(el, { opacity: 0, y: 8, duration: 0.25, onComplete: () => el.remove() });
+  }, 2800);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════════
+const Modal = (() => {
+  let _apiCallback = null;
+  let _confirmCallback = null;
+
+  function openApi(callback) {
+    _apiCallback = callback;
+    const overlay = document.getElementById('modal-api');
+    const existing = State.get('apiKey') || '';
+    document.getElementById('api-key-input').value = existing;
+    overlay.classList.add('open');
+  }
+  function closeApi() {
+    document.getElementById('modal-api').classList.remove('open');
+    _apiCallback = null;
+  }
+  function saveApi() {
+    const val = document.getElementById('api-key-input').value.trim();
+    if (!val) { showToast('Please enter your API key', 'error'); return; }
+    State.set('apiKey', val);
+    closeApi();
+    if (_apiCallback) _apiCallback();
+  }
+
+  function openConfirm(title, sub, onOk) {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-sub').textContent = sub;
+    _confirmCallback = onOk;
+    document.getElementById('btn-confirm-ok').onclick = () => {
+      closeConfirm();
+      if (_confirmCallback) _confirmCallback();
+    };
+    document.getElementById('modal-confirm').classList.add('open');
+  }
+  function closeConfirm() {
+    document.getElementById('modal-confirm').classList.remove('open');
+  }
+
+  // Close on overlay click
+  document.getElementById('modal-api').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeApi();
+  });
+  document.getElementById('modal-confirm').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeConfirm();
+  });
+
+  return { openApi, closeApi, saveApi, openConfirm, closeConfirm };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════════════════
+const Onboarding = (() => {
+  let currentSlide = 0;
+  const TOTAL = 5;
+  const data = { name: '', age: 0, hoursWasted: 0 };
+
+  function init() {
+    // Animate slide 0 entrance
+    const tl = gsap.timeline();
+    tl.from('#sb-logo', { y: 30, opacity: 0, duration: 0.9, ease: 'power3.out' })
+      .from('#sb-tagline', { y: 15, opacity: 0, duration: 0.5, ease: 'power2.out' }, '-=0.4')
+      .from('#btn-start', { y: 20, opacity: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3');
+
+    // Wire up input listeners
+    const nameInput = document.getElementById('input-name');
+    nameInput.addEventListener('input', () => {
+      const show = nameInput.value.trim().length > 0;
+      gsap.to('#btn-wrap-name', { opacity: show ? 1 : 0, duration: 0.25 });
+    });
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && nameInput.value.trim()) nextSlide();
+    });
+
+    const ageInput = document.getElementById('input-age');
+    ageInput.addEventListener('input', () => {
+      const show = ageInput.value.length > 0;
+      gsap.to('#btn-wrap-age', { opacity: show ? 1 : 0, duration: 0.25 });
+    });
+    ageInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && ageInput.value) nextSlide();
+    });
+
+    const hoursInput = document.getElementById('input-hours');
+    hoursInput.addEventListener('input', () => {
+      const show = hoursInput.value.length > 0;
+      gsap.to('#btn-wrap-hours', { opacity: show ? 1 : 0, duration: 0.25 });
+    });
+    hoursInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && hoursInput.value) showDotChart();
+    });
+  }
+
+  function nextSlide() {
+    if (currentSlide === 1) {
+      const v = document.getElementById('input-name').value.trim();
+      if (!v) return;
+      data.name = v;
+    }
+    if (currentSlide === 2) {
+      const v = parseInt(document.getElementById('input-age').value);
+      if (!v || v < 5) return;
+      data.age = v;
+    }
+
+    const fromEl = document.getElementById('slide-' + currentSlide);
+    const toIdx  = currentSlide + 1;
+    const toEl   = document.getElementById('slide-' + toIdx);
+    if (!toEl) return;
+
+    // Animate out
+    gsap.to(fromEl, {
+      x: -60, opacity: 0, duration: 0.4, ease: 'power2.in',
+      onComplete: () => {
+        fromEl.classList.remove('active');
+        fromEl.style.opacity = '';
+        fromEl.style.transform = '';
+      }
+    });
+
+    // Animate in
+    toEl.classList.add('active');
+    gsap.fromTo(toEl, { x: 60, opacity: 0 }, {
+      x: 0, opacity: 1, duration: 0.5, ease: 'power2.out', delay: 0.1,
+      onComplete: () => {
+        // Auto-focus input on question slides
+        const input = toEl.querySelector('.slide-input');
+        if (input) setTimeout(() => input.focus(), 50);
+
+        // Build ready slide
+        if (toIdx === 4) buildReadySlide();
+      }
+    });
+
+    currentSlide = toIdx;
+    updateDots();
+  }
+
+  function showDotChart() {
+    const v = parseFloat(document.getElementById('input-hours').value);
+    if (isNaN(v) || v < 0) return;
+    data.hoursWasted = v;
+
+    const questionEl  = document.getElementById('slide3-question');
+    const dotchartEl  = document.getElementById('slide3-dotchart');
+
+    gsap.to(questionEl, {
+      opacity: 0, y: -20, duration: 0.35, ease: 'power2.in',
+      onComplete: () => {
+        questionEl.style.display = 'none';
+        dotchartEl.style.display = 'block';
+
+        // Build dot grid
+        buildDotChart(v);
+
+        gsap.to(dotchartEl, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+      }
+    });
+  }
+
+  function buildDotChart(hoursPerWeek) {
+    const grid = document.getElementById('dot-grid');
+    grid.innerHTML = '';
+    const TOTAL_DOTS = 52;
+    const maxHours   = 40;
+    const filled     = Math.min(Math.round((hoursPerWeek / maxHours) * TOTAL_DOTS), TOTAL_DOTS);
+
+    for (let i = 0; i < TOTAL_DOTS; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'dot ' + (i < filled ? 'dot--filled' : 'dot--empty');
+      grid.appendChild(dot);
+    }
+
+    document.getElementById('dot-hours-total').textContent =
+      Math.round(hoursPerWeek * 52).toLocaleString();
+
+    // Animate
+    const tl = gsap.timeline();
+    tl.from('.dot--filled', {
+      scale: 0, opacity: 0,
+      stagger: { amount: Math.min(1.6, filled * 0.04), from: 'start' },
+      ease: 'back.out(2)',
+      duration: 0.35
+    })
+    .from('.dot--empty', {
+      opacity: 0,
+      stagger: { amount: 0.5, from: 'start' },
+      duration: 0.2
+    }, '-=0.8')
+    .to('#dot-cta', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '+=0.3')
+    .to('#btn-wrap-dot', { opacity: 1, duration: 0.35, ease: 'power2.out' }, '-=0.1');
+  }
+
+  function buildReadySlide() {
+    document.getElementById('ready-name').textContent = 'Ready, ' + data.name + '?';
+    const pWrap = document.getElementById('ready-pills');
+    pWrap.innerHTML = [
+      `<span class="ready-pill">Age ${data.age}</span>`,
+      `<span class="ready-pill">${data.hoursWasted} hrs/week wasted</span>`,
+    ].join('');
+  }
+
+  function updateDots() {
+    document.querySelectorAll('.slide-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentSlide);
+    });
+  }
+
+  function finish() {
+    const profile = {
+      name: data.name,
+      age: data.age,
+      hoursWasted: data.hoursWasted,
+      onboardingComplete: true,
+      createdAt: new Date().toISOString()
+    };
+    State.set('profile', profile);
+    Router.go('dashboard');
+  }
+
+  return { init, nextSlide, showDotChart, finish };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// CLAUDE API
+// ══════════════════════════════════════════════════════════════
+const Claude = (() => {
+  const API_URL = 'https://api.anthropic.com/v1/messages';
+  const MODEL   = 'claude-sonnet-4-6';
+
+  const SYSTEM = `You are StudBud, an AI study assistant. Your ONLY job is to analyze student study materials and return a structured JSON study guide.
+You MUST return ONLY raw valid JSON — no markdown fences, no explanatory text, just the JSON object.
+If you cannot parse the material, return: {"error": "Could not parse material", "reason": "..."}`;
+
+  const USER_PROMPT = `Analyze the provided study material and return a JSON study guide using this EXACT schema:
+
+{
+  "title": "5-word max descriptive title",
+  "subject": "Academic subject (e.g. Biology, Calculus, US History)",
+  "summary": "2-3 sentences describing what this material covers.",
+  "sections": [
+    {
+      "name": "Section Name",
+      "tasks": [
+        { "id": "t_001", "text": "Specific, actionable study task referencing actual content", "points": 10, "completed": false }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Generate exactly 6-12 tasks total, spread across 2-4 sections
+- Section names must come from: Key Concepts, Practice Problems, Review Questions, Formulas to Memorize, Vocabulary, Diagrams to Study
+- Task text MUST reference specific content from the material (not generic instructions)
+- Points: 10 = recall/recognition, 15 = application/practice, 20 = synthesis/creation
+- Task IDs: sequential t_001, t_002, etc.`;
+
+  async function generate(fileData) {
+    const apiKey = State.get('apiKey');
+    if (!apiKey) throw new Error('NO_API_KEY');
+
+    let messages;
+    if (fileData.type === 'image') {
+      messages = [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: fileData.mimeType, data: fileData.data } },
+          { type: 'text', text: USER_PROMPT }
+        ]
+      }];
+    } else {
+      messages = [{
+        role: 'user',
+        content: USER_PROMPT + '\n\n---\nMATERIAL TEXT:\n' + fileData.text
+      }];
+    }
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: 2048, system: SYSTEM, messages })
+    });
+
+    if (res.status === 401) throw new Error('INVALID_KEY');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data   = await res.json();
+    const raw    = data.content[0].text.trim();
+
+    // Strip accidental code fences
+    const clean  = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    const guide  = JSON.parse(clean);
+    if (guide.error) throw new Error(guide.reason || 'AI returned error');
+    return guide;
+  }
+
+  return { generate };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// UPLOAD
+// ══════════════════════════════════════════════════════════════
+const Upload = (() => {
+  let currentFile = null;
+  let currentFileData = null;
+
+  function init() {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+  }
+
+  function handleFile(file) {
+    currentFile = file;
+    // Show preview
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const icon = ext === 'pdf' ? '📄' : '🖼️';
+    document.getElementById('file-icon').textContent = icon;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = formatBytes(file.size);
+    const preview = document.getElementById('file-preview');
+    preview.classList.add('visible');
+    gsap.fromTo(preview, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+    document.getElementById('btn-generate').disabled = false;
+    document.getElementById('drop-zone').querySelector('p.drop-title').textContent = 'File selected — ready to generate';
+  }
+
+  function clearFile() {
+    currentFile = null;
+    currentFileData = null;
+    document.getElementById('file-preview').classList.remove('visible');
+    document.getElementById('btn-generate').disabled = true;
+    document.getElementById('file-input').value = '';
+    document.getElementById('drop-zone').querySelector('p.drop-title').textContent = 'Drop a PDF or image here';
+  }
+
+  async function generate() {
+    if (!currentFile) return;
+
+    const apiKey = State.get('apiKey');
+    if (!apiKey) {
+      Modal.openApi(() => generate());
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const fileData = await readFile(currentFile);
+      const guide = await Claude.generate(fileData);
+
+      // Attach metadata and save
+      guide.id = 'g_' + Math.random().toString(36).slice(2, 9);
+      guide.sourceFilename = currentFile.name;
+      guide.createdAt = new Date().toISOString();
+
+      // Ensure completed/completedAt on tasks
+      guide.sections.forEach(sec => {
+        sec.tasks.forEach(t => { t.completed = false; t.completedAt = null; });
+      });
+
+      const guides = State.get('guides');
+      guides.unshift(guide);
+      State.set('guides', guides);
+
+      showToast('Study guide created!');
+      clearFile();
+      StudyGuide.load(guide.id);
+      Router.go('guide');
+
+    } catch (err) {
+      if (err.message === 'NO_API_KEY' || err.message === 'INVALID_KEY') {
+        Modal.openApi(() => generate());
+      } else {
+        showToast(err.message || 'Something went wrong', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function readFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') {
+      const text = await extractPdfText(file);
+      return { type: 'text', text };
+    } else {
+      const { data, mimeType } = await fileToBase64(file);
+      return { type: 'image', data, mimeType };
+    }
+  }
+
+  function extractPdfText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const typedarray = new Uint8Array(e.target.result);
+          const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+          let text = '';
+          for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(s => s.str).join(' ') + '\n';
+          }
+          resolve(text.slice(0, 12000));
+        } catch(err) {
+          reject(err);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const result = e.target.result;
+        const base64 = result.split(',')[1];
+        resolve({ data: base64, mimeType: file.type || 'image/jpeg' });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setLoading(on) {
+    const btn    = document.getElementById('btn-generate');
+    const spinner = document.getElementById('generate-spinner');
+    const text   = document.getElementById('btn-generate-text');
+    btn.disabled = on;
+    spinner.style.display = on ? 'block' : 'none';
+    text.textContent = on ? 'Analyzing...' : 'Generate Study Guide';
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  return { init, clearFile, generate };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// STUDY GUIDE
+// ══════════════════════════════════════════════════════════════
+const StudyGuide = (() => {
+  let activeGuideId = null;
+
+  function load(id) { activeGuideId = id; }
+
+  function getGuide() {
+    return State.get('guides').find(g => g.id === activeGuideId);
+  }
+
+  function render() {
+    const guide = getGuide();
+    if (!guide) return;
+    const container = document.getElementById('guide-content');
+
+    const totalTasks     = guide.sections.reduce((sum, s) => sum + s.tasks.length, 0);
+    const completedTasks = guide.sections.reduce((sum, s) => sum + s.tasks.filter(t => t.completed).length, 0);
+    const pct            = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const totalEarned    = guide.sections.reduce((sum, s) => sum + s.tasks.filter(t => t.completed).reduce((a, t) => a + t.points, 0), 0);
+    const allDone        = completedTasks === totalTasks && totalTasks > 0;
+
+    container.innerHTML = `
+      <div class="guide-meta">
+        <span class="guide-subject-pill">${esc(guide.subject)}</span>
+        <h2 class="guide-main-title">${esc(guide.title)}</h2>
+        <p class="guide-source">From: ${esc(guide.sourceFilename)} · ${fmtDate(guide.createdAt)}</p>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.5;margin-bottom:0;">${esc(guide.summary)}</p>
+      </div>
+      <div class="guide-progress-wrap">
+        <div class="guide-progress-label">
+          Progress <span>${completedTasks} / ${totalTasks} tasks · ${totalEarned} pts earned</span>
+        </div>
+        <div class="guide-progress-bar-wrap">
+          <div class="guide-progress-bar" style="width:${pct}%"></div>
+        </div>
+      </div>
+      ${guide.sections.map(sec => `
+        <div class="guide-section">
+          <p class="guide-section-name">${esc(sec.name)}</p>
+          ${sec.tasks.map(task => `
+            <div class="task-row${task.completed ? ' completed' : ''}" data-id="${task.id}" onclick="StudyGuide.toggleTask('${task.id}')">
+              <div class="task-check" id="check-${task.id}">
+                <span class="check-icon">✓</span>
+              </div>
+              <div class="task-body">
+                <p class="task-text">${esc(task.text)}</p>
+                <p class="task-pts">+${task.points} pts${task.completed ? ' earned' : ''}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+      <div class="guide-complete-banner${allDone ? ' visible' : ''}" id="complete-banner">
+        <div class="guide-complete-emoji">🎉</div>
+        <h3 class="guide-complete-title">All done!</h3>
+        <p class="guide-complete-sub">You earned <strong>${totalEarned} pts</strong> on this guide.</p>
+        <button class="btn-secondary" onclick="Router.go('dashboard')">← Back to Dashboard</button>
+      </div>
+    `;
+  }
+
+  function toggleTask(taskId) {
+    const guides = State.get('guides');
+    const guide  = guides.find(g => g.id === activeGuideId);
+    if (!guide) return;
+
+    let task = null;
+    guide.sections.forEach(s => s.tasks.forEach(t => { if (t.id === taskId) task = t; }));
+    if (!task) return;
+
+    const wasCompleted = task.completed;
+    task.completed   = !wasCompleted;
+    task.completedAt = task.completed ? new Date().toISOString() : null;
+
+    // Update points
+    const pts = State.get('points');
+    if (task.completed) {
+      // Award points (guard dupe)
+      if (!pts.history.find(h => h.guideId === activeGuideId && h.taskId === taskId)) {
+        const prev = pts.total;
+        pts.total += task.points;
+        pts.history.push({ guideId: activeGuideId, taskId, points: task.points, earnedAt: task.completedAt });
+        State.set('points', pts);
+        NavBar.animatePoints(prev, pts.total);
+      }
+    } else {
+      // Remove points
+      const idx = pts.history.findIndex(h => h.guideId === activeGuideId && h.taskId === taskId);
+      if (idx !== -1) {
+        const prev = pts.total;
+        pts.total -= task.points;
+        pts.history.splice(idx, 1);
+        State.set('points', pts);
+        NavBar.animatePoints(prev, pts.total);
+      }
+    }
+
+    State.set('guides', guides);
+
+    // Animate checkbox
+    const checkEl = document.getElementById('check-' + taskId);
+    const rowEl   = document.querySelector(`[data-id="${taskId}"]`);
+    if (checkEl) {
+      gsap.fromTo(checkEl, { scale: 0.8 }, {
+        scale: 1.35, duration: 0.15, ease: 'power2.out',
+        onComplete: () => gsap.to(checkEl, { scale: 1, duration: 0.2, ease: 'elastic.out(1.5,0.4)' })
+      });
+    }
+    if (rowEl) {
+      rowEl.classList.toggle('completed', task.completed);
+    }
+
+    // Update progress bar
+    const totalTasks     = guide.sections.reduce((sum, s) => sum + s.tasks.length, 0);
+    const completedTasks = guide.sections.reduce((sum, s) => sum + s.tasks.filter(t => t.completed).length, 0);
+    const pct = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const bar = document.querySelector('.guide-progress-bar');
+    if (bar) bar.style.width = pct + '%';
+    const label = document.querySelector('.guide-progress-label span');
+    const totalEarned = guide.sections.reduce((sum, s) => sum + s.tasks.filter(t => t.completed).reduce((a, t) => a + t.points, 0), 0);
+    if (label) label.textContent = `${completedTasks} / ${totalTasks} tasks · ${totalEarned} pts earned`;
+
+    // Update task pts text
+    const ptsEl = rowEl && rowEl.querySelector('.task-pts');
+    if (ptsEl) ptsEl.textContent = `+${task.points} pts${task.completed ? ' earned' : ''}`;
+
+    // Completion check
+    if (task.completed && completedTasks === totalTasks) {
+      setTimeout(() => {
+        const banner = document.getElementById('complete-banner');
+        if (banner) {
+          banner.classList.add('visible');
+          banner.querySelector('p').innerHTML = `You earned <strong>${totalEarned} pts</strong> on this guide.`;
+          gsap.fromTo(banner, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)' });
+        }
+        burstConfetti();
+      }, 300);
+    }
+  }
+
+  function burstConfetti() {
+    const colors = ['#0A0A0A', '#555', '#888', '#AAAAAA', '#333'];
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    for (let i = 0; i < 14; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const angle = (Math.PI * 2 * i) / 14;
+      const dist  = 80 + Math.random() * 100;
+      el.style.setProperty('--tx', Math.round(Math.cos(angle) * dist) + 'px');
+      el.style.setProperty('--ty', Math.round(Math.sin(angle) * dist) + 'px');
+      el.style.left = cx + 'px';
+      el.style.top  = cy + 'px';
+      el.style.background = colors[i % colors.length];
+      el.style.animationDuration = (0.6 + Math.random() * 0.3) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1200);
+    }
+  }
+
+  return { load, render };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════════
+const Dashboard = (() => {
+  function render() {
+    const profile = State.get('profile');
+    const guides  = State.get('guides');
+    const hour    = new Date().getHours();
+    const period  = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+    const name    = profile ? profile.name : 'there';
+
+    document.getElementById('dashboard-greeting').textContent = `Good ${period}, ${name}.`;
+
+    const sub = guides.length === 0
+      ? 'Upload your first study material to get started.'
+      : guides.length === 1
+        ? 'You have 1 active study guide.'
+        : `You have ${guides.length} active study guides.`;
+    document.getElementById('dashboard-sub').textContent = sub;
+
+    const wrap = document.getElementById('guide-cards-wrap');
+    if (guides.length === 0) {
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-icon">📚</span>
+          <h3 class="empty-title">No guides yet</h3>
+          <p class="empty-sub">Upload a PDF or photo and AI will build your study guide.</p>
+        </div>`;
+      return;
+    }
+
+    wrap.innerHTML = guides.map(g => {
+      const total     = g.sections.reduce((s, sec) => s + sec.tasks.length, 0);
+      const completed = g.sections.reduce((s, sec) => s + sec.tasks.filter(t => t.completed).length, 0);
+      const pct       = total ? Math.round((completed / total) * 100) : 0;
+      const earned    = g.sections.reduce((s, sec) => s + sec.tasks.filter(t => t.completed).reduce((a, t) => a + t.points, 0), 0);
+      return `
+        <div class="guide-card" onclick="Dashboard.openGuide('${g.id}')">
+          <div class="guide-card-header">
+            <span class="subject-pill">${esc(g.subject)}</span>
+            <span class="guide-date">${fmtDate(g.createdAt)}</span>
+          </div>
+          <p class="guide-title">${esc(g.title)}</p>
+          <div class="progress-row">
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+            <span class="progress-count">${completed}/${total}</span>
+          </div>
+          ${earned > 0 ? `<p class="guide-pts-earned">⭐ ${earned} pts earned</p>` : ''}
+        </div>`;
+    }).join('');
+
+    // Stagger card entrance
+    gsap.fromTo('.guide-card', { opacity: 0, y: 12 }, { opacity: 1, y: 0, stagger: 0.07, duration: 0.35, ease: 'power2.out' });
+  }
+
+  function openGuide(id) {
+    StudyGuide.load(id);
+    Router.go('guide');
+    // Render after navigation
+    setTimeout(() => StudyGuide.render(), 50);
+  }
+
+  return { render, openGuide };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════════════════════
+const Profile = (() => {
+  function render() {
+    const profile = State.get('profile');
+    const guides  = State.get('guides');
+    const points  = State.get('points');
+
+    if (!profile) return;
+
+    const totalTasks = guides.reduce((s, g) => s + g.sections.reduce((ss, sec) => ss + sec.tasks.filter(t => t.completed).length, 0), 0);
+    const hoursSaved = Math.round(totalTasks * 0.25);
+    const joined     = new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const initial    = profile.name.charAt(0).toUpperCase();
+
+    document.getElementById('profile-content').innerHTML = `
+      <div class="profile-avatar">${initial}</div>
+      <h2 class="profile-name">${esc(profile.name)}</h2>
+      <p class="profile-meta">Age ${profile.age} · Member since ${joined}</p>
+      <div class="points-display">
+        <p class="points-label">⭐ Total StudBud Points</p>
+        <div class="points-number">${(points.total || 0).toLocaleString()}</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">${guides.length}</div>
+          <div class="stat-label">Study Guides</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${totalTasks}</div>
+          <div class="stat-label">Tasks Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">~${hoursSaved}h</div>
+          <div class="stat-label">Hours Saved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${totalTasks ? Math.round(points.total / totalTasks) : 0}</div>
+          <div class="stat-label">Avg pts / task</div>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn-secondary" style="width:100%;justify-content:center;" onclick="Profile.editApiKey()">🔑 Update API Key</button>
+        <button class="btn-danger" onclick="Profile.clearData()">Clear all data</button>
+      </div>
+    `;
+  }
+
+  function editApiKey() {
+    Modal.openApi(() => showToast('API key updated'));
+  }
+
+  function clearData() {
+    Modal.openConfirm(
+      'Clear all data?',
+      'This will delete all study guides, points, and your profile. This cannot be undone.',
+      () => {
+        State.clearAll();
+        showToast('All data cleared');
+        Router.go('onboarding');
+        // Re-init onboarding
+        document.getElementById('view-onboarding').classList.add('active');
+        setTimeout(() => Onboarding.init(), 300);
+      }
+    );
+  }
+
+  return { render, editApiKey, clearData };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function init() {
+  State.load();
+  Upload.init();
+
+  const profile = State.get('profile');
+
+  if (profile && profile.onboardingComplete) {
+    // Skip onboarding
+    document.getElementById('view-onboarding').classList.remove('active');
+    document.getElementById('view-dashboard').classList.add('active');
+    document.getElementById('nav').classList.add('visible');
+    NavBar.render();
+    Dashboard.render();
+  } else {
+    // Show onboarding
+    Onboarding.init();
+  }
+
+  // Handle guide view rendering on navigation
+  document.getElementById('view-guide').addEventListener('transitionend', () => {
+    if (document.getElementById('view-guide').classList.contains('active')) {
+      StudyGuide.render();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
